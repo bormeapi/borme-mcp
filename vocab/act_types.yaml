@@ -1,0 +1,178 @@
+# Act-type vocabulary: canonical ES label -> EN enum + arg style.
+# style: colon  = label followed by ":" and payload
+#        noarg  = bare label (payload optional free text until next label)
+#        ending = terminates the act chain (Datos registrales)
+# variants: accent/typo variants seen in the corpus (matching is accent-folded anyway;
+#           list here only variants that differ beyond accents).
+# Derived from own corpus scans (2026-07 + samples 2009/2015). MIT-clean.
+
+- es: "Constitución"
+  en: INCORPORATION
+  style: noarg
+- es: "Nombramientos"
+  en: APPOINTMENTS
+  style: noarg
+- es: "Ceses/Dimisiones"
+  en: TERMINATIONS
+  style: noarg
+- es: "Revocaciones"
+  en: REVOCATIONS
+  style: noarg
+- es: "Reelecciones"
+  en: RE_ELECTIONS
+  style: noarg
+- es: "Cancelaciones de oficio de nombramientos"
+  en: APPOINTMENT_CANCELLATIONS
+  style: noarg
+- es: "Modificaciones estatutarias"
+  en: STATUTORY_AMENDMENTS
+  style: noarg
+- es: "Cambio de denominación social"
+  en: NAME_CHANGE
+  style: noarg
+- es: "Cambio de domicilio social"
+  en: ADDRESS_CHANGE
+  style: noarg
+- es: "Cambio de objeto social"
+  en: PURPOSE_CHANGE
+  style: noarg
+- es: "Ampliación del objeto social"
+  en: PURPOSE_EXTENSION
+  style: noarg
+- es: "Ampliación de capital"
+  en: CAPITAL_INCREASE
+  style: noarg
+- es: "Reducción de capital"
+  en: CAPITAL_REDUCTION
+  style: noarg
+- es: "Disolución"
+  en: DISSOLUTION
+  style: noarg
+- es: "Extinción"
+  en: EXTINCTION
+  style: noarg
+- es: "Declaración de concurso"
+  en: INSOLVENCY_DECLARATION
+  style: noarg
+- es: "Situación concursal"
+  en: INSOLVENCY_STATUS
+  style: noarg
+- es: "Fusión por absorción"
+  en: MERGER_BY_ABSORPTION
+  style: noarg
+- es: "Fusión por unión"
+  en: MERGER_BY_UNION
+  style: noarg
+- es: "Escisión parcial"
+  en: PARTIAL_SPIN_OFF
+  style: noarg
+- es: "Escisión total"
+  en: TOTAL_SPIN_OFF
+  style: noarg
+- es: "Transformación de sociedad"
+  en: TRANSFORMATION
+  style: noarg
+- es: "Sociedad unipersonal"
+  en: SOLE_SHAREHOLDER_STATUS
+  style: noarg
+- es: "Declaración de unipersonalidad"
+  en: SOLE_SHAREHOLDER_DECLARATION
+  style: noarg
+- es: "Cambio de identidad del socio único"
+  en: SOLE_SHAREHOLDER_CHANGE
+  style: noarg
+- es: "Desembolso de dividendos pasivos"
+  en: CALLED_UP_CAPITAL_PAID
+  style: noarg
+- es: "Pérdida del carácter de unipersonalidad"
+  en: SOLE_SHAREHOLDER_STATUS_LOST
+  style: noarg
+  variants: ["Pérdida del caracter de unipersonalidad",
+             # BOE's own data bug in some 2024-2025 files: é dropped to a space + source typo "carater"
+             "P rdida del carater de unipersonalidad",
+             "P rdida del caracter de unipersonalidad",
+             "Pérdida del carater de unipersonalidad"]
+- es: "Reapertura hoja registral"
+  en: REGISTRY_SHEET_REOPENED
+  style: noarg
+- es: "Adaptación Ley 2/95"
+  en: LEGAL_ADAPTATION
+  style: noarg
+  variants: ["Adaptación Ley 44/2015", "Adaptacion de sociedad", "Adaptada segun D.T. 2 apartado 2 Ley 2/95"]
+- es: "Página web de la sociedad"
+  en: COMPANY_WEBSITE
+  style: noarg
+- es: "Primera sucursal de sociedad extranjera"
+  en: FOREIGN_BRANCH_FIRST
+  style: noarg
+- es: "Cierre provisional hoja registral art. 137.2 Ley 43/1995 Impuesto de Sociedades"
+  en: PROVISIONAL_SHEET_CLOSURE_TAX
+  style: noarg
+  variants: ["Cierre provisional hoja registral por baja en el índice de Entidades Jurídicas"]
+- es: "Cierre provisional de la hoja registral por revocación del NIF"
+  en: PROVISIONAL_SHEET_CLOSURE_NIF_REVOKED
+  style: noarg
+  variants: ["Cierre provisional hoja registral por revocación del NIF", "Cierre provisional de la hoja registral por revocación del NIFde acuerdo con lo dispuesto en la D.A. 6ª de la Ley General Tributaria", "Cierre provisional hoja registral por revocación del NIFde Entidades Jurídicas"]
+- es: "Cierre provisional hoja registral Art.485 TRLC"
+  en: PROVISIONAL_SHEET_CLOSURE_INSOLVENCY
+  style: noarg
+  variants: ["Cierre provisional de hoja registral Art.485 TRLC"]
+- es: "Crédito incobrable"
+  en: BAD_DEBT_WRITE_OFF
+  style: noarg
+- es: "Anotación preventiva"
+  en: PREVENTIVE_ANNOTATION
+  style: noarg
+- es: "Emisión de obligaciones"
+  en: BOND_ISSUE
+  style: noarg
+- es: "Modificación de poderes"
+  en: POWERS_MODIFICATION
+  style: noarg
+- es: "Segregación"
+  en: SEGREGATION
+  style: noarg
+- es: "Sucursal"
+  en: BRANCH
+  style: noarg
+- es: "Reactivación de la sociedad (Art. 242 del Reglamento del Registro Mercantil)"
+  en: COMPANY_REACTIVATION
+  style: noarg
+  variants: ["Reactivación de la sociedad"]
+- es: "Cesión global de activo y pasivo"
+  en: GLOBAL_TRANSFER_ASSETS_LIABILITIES
+  style: noarg
+- es: "Articulo 378.5 del Reglamento del Registro Mercantil"
+  en: ACCOUNTS_NON_APPROVAL_JUSTIFICATION
+  style: noarg
+  variants: ["Artículo 378.5 del Reglamento del Registro Mercantil"]
+- es: "Fe de erratas"
+  en: ERRATUM
+  style: colon
+- es: "Otros conceptos"
+  en: OTHER
+  style: colon
+- es: "Empresario Individual"
+  en: SOLE_TRADER
+  style: noarg
+- es: "Datos registrales"
+  en: REGISTRAL_DATA
+  style: ending
+
+# --- additions 2026-07-07 (backfill tails, research/vocab-tails.md) ---
+- es: "Modificación de duración"
+  en: DURATION_CHANGE
+  style: colon
+- es: "Acuerdo de ampliación de capital social sin ejecutar"
+  en: CAPITAL_INCREASE_UNEXECUTED
+  style: noarg
+- es: "Suspensión de pagos"
+  en: SUSPENSION_OF_PAYMENTS
+  style: noarg
+- es: "Quiebra. CANCELACION"
+  en: BANKRUPTCY_LEGACY
+  style: noarg
+  variants: ["Quiebra. CONVENIO"]
+- es: "Primera inscripción (O.M. 10/6/1.997)"
+  en: FIRST_INSCRIPTION
+  style: noarg

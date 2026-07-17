@@ -136,6 +136,61 @@ def company_history(company: str, limit: int = 100) -> str:
 
 
 @mcp.tool()
+def company_by_nif(nif: str) -> str:
+    """Look up a Spanish company by its NIF/CIF tax ID.
+
+    BORME itself prints no tax IDs — this mapping is cross-referenced from
+    open official sources (GLEIF, BDNS subsidies register, AEAT) and covers
+    a growing subset (~232k companies). A miss means "not matched yet",
+    not "does not exist". On a hit, follow up with company_history using
+    the returned slug.
+    """
+    q = nif.strip().upper().replace("-", "").replace(" ", "")
+    with _conn() as conn:
+        r = conn.execute(
+            "SELECT n.company_slug, s.company_name, s.status, s.province, "
+            "       n.source, n.confidence "
+            "FROM company_nif n JOIN company_state s USING (company_slug) "
+            "WHERE n.nif = %s", (q,)).fetchone()
+    if not r:
+        return json.dumps({"found": False, "nif": q,
+                           "note": "NIF coverage is a subset of 3.3M companies; "
+                                   "try company_history with the name instead"})
+    return json.dumps({
+        "found": True, "nif": q, "company_slug": r[0], "company_name": r[1],
+        "status": r[2], "province": r[3],
+        "nif_source": r[4], "nif_confidence": r[5],
+    }, ensure_ascii=False)
+
+
+@mcp.tool()
+def recent_signals(signal_type: str | None = None) -> str:
+    """Sample of the latest derived risk signals (last 7 publication days,
+    max 10 rows). Types: INSOLVENCY_FILED, ACCORDION, MASS_EXIT,
+    OWNERSHIP_CHANGE, DISTRESS_COMBO, PHOENIX, ADDRESS_CLUSTER, AEAT_DEBTOR.
+
+    This is a teaser feed — the full historical signals firehose lives in the
+    hosted API's risk tier (https://bormeapi.com/#pricing).
+    """
+    where, params = ["date >= current_date - 7"], []
+    if signal_type:
+        where.append("signal_type = %s")
+        params.append(signal_type.strip().upper())
+    with _conn() as conn:
+        rows = conn.execute(
+            "SELECT signal_type, date, company_slug, company_name, province, details "
+            f"FROM signals WHERE {' AND '.join(where)} "
+            "ORDER BY date DESC LIMIT 10", params).fetchall()
+    return json.dumps({
+        "count": len(rows), "window": "last 7 days", "sample_cap": 10,
+        "signals": [{"signal_type": r[0], "date": r[1].isoformat(),
+                     "company_slug": r[2], "company_name": r[3],
+                     "province": r[4], "details": r[5]} for r in rows],
+        "full_feed": "risk tier — https://bormeapi.com/#pricing",
+    }, ensure_ascii=False, default=str)
+
+
+@mcp.tool()
 def daily_digest(date: str | None = None) -> str:
     """Digest of one BORME publication day (default: latest in the database):
     totals by event type, top provinces, and all insolvency declarations."""

@@ -28,6 +28,8 @@ Free, read-only, capped at 50 rows per query. Backed by the full 17-year corpus.
 | `daily_digest` | One day's registry activity, aggregated |
 | `registry_stats` | Corpus coverage and volume stats |
 | `list_act_types` | The 52-enum vocabulary with Spanish originals |
+| `company_by_nif` | Resolve a NIF/CIF tax ID to a company (cross-referenced from GLEIF/BDNS/AEAT open sources, ~232k companies) |
+| `recent_signals` | Sample of derived risk signals: insolvencies, phoenix companies, mass officer exits, AEAT debtors (last 7 days) |
 
 ## Example prompts
 

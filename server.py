@@ -180,7 +180,17 @@ def list_act_types() -> str:
 
 @mcp.tool()
 def registry_stats() -> str:
-    """Database coverage: date range, event/company counts, recent parse quality."""
+    """Coverage and freshness report for the BORME dataset behind this server.
+
+    Returns a JSON object with: total_events (approximate count, planner
+    estimate), total_companies, date_range (first and latest publication day
+    covered, YYYY-MM-DD), and recent parse completeness (share of gazette text
+    successfully structured over the last publication days, e.g. 0.9987).
+
+    Use this to answer "how much data is there?", "how fresh is it?" and
+    "can I trust date filters for period X?" before running searches. Takes
+    no arguments; counts are estimates (fast reads), not exact tallies.
+    """
     with _conn() as conn:
         # planner estimates: exact counts over millions of rows blow the
         # public read-only role's 5s statement_timeout during heavy ingest

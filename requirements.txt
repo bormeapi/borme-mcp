@@ -1,3 +1,8 @@
-mcp>=1.0
+# Upper bound is not caution, it is a break: mcp 2.x renamed FastMCP to
+# MCPServer and changed other APIs, so `mcp>=1.0` alone builds an image that
+# fails at import. CI caught it on its first run; anyone who had built the
+# Dockerfile after the 2.0 release would have got a broken server.
+# borme-core pins the same range.
+mcp>=1.2,<2
 psycopg[binary]>=3.1
 pyyaml>=6

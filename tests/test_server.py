@@ -104,6 +104,11 @@ def test_the_repository_discloses_no_infrastructure_or_secrets():
                              text=True, check=True).stdout.split()
     offenders = []
     for rel in tracked:
+        # This file spells the patterns out, so it matches every one of them.
+        # Skipping it is the only exclusion, and it is a narrow one: a secret
+        # would have to be hidden inside the scanner itself to escape.
+        if rel == "tests/test_server.py":
+            continue
         p = ROOT / rel
         if not p.is_file():
             continue

@@ -140,9 +140,9 @@ def company_by_nif(nif: str) -> str:
     """Look up a Spanish company by its NIF/CIF tax ID.
 
     BORME itself prints no tax IDs — this mapping is cross-referenced from
-    open official sources (GLEIF, BDNS subsidies register, AEAT) and covers
-    a growing subset (~232k companies). A miss means "not matched yet",
-    not "does not exist". On a hit, follow up with company_history using
+    open official sources and covers a growing subset (~560k companies, 17%
+    of the corpus, up from 232k when this tool shipped). A miss means
+    "not matched yet", not "does not exist". On a hit, follow up with company_history using
     the returned slug.
     """
     q = nif.strip().upper().replace("-", "").replace(" ", "")

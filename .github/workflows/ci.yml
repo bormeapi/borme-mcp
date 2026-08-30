@@ -1,0 +1,37 @@
+name: ci
+
+# The server is published and indexed by MCP directories, so a broken commit
+# is visible to strangers before it is visible to us. Nothing here needs a
+# database: tool listing is meant to work without one, and that is the same
+# path Glama takes when it introspects the server.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt pytest
+      - run: pytest tests/ -q
+
+  docker:
+    # The image is what Glama builds to inspect the server. It broke nothing
+    # so far because nobody rebuilt it; this makes every commit rebuild it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker build -t borme-mcp:ci .
+      - name: tools list from inside the image, with no database
+        run: |
+          docker run --rm --entrypoint python borme-mcp:ci -c "
+          import asyncio, server
+          names = [t.name for t in asyncio.run(server.mcp.list_tools())]
+          assert len(names) >= 7, names
+          print('tools:', names)"

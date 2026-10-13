@@ -4,6 +4,8 @@
 #        ending = terminates the act chain (Datos registrales)
 # variants: accent/typo variants seen in the corpus (matching is accent-folded anyway;
 #           list here only variants that differ beyond accents).
+# label: optional display name of the enum, where `es` would mislead (it is
+#        never matched against the text).
 # Derived from own corpus scans (2026-07 + samples 2009/2015). MIT-clean.
 
 - es: "Constitución"
@@ -169,10 +171,24 @@
 - es: "Suspensión de pagos"
   en: SUSPENSION_OF_PAYMENTS
   style: noarg
+# The quiebra of the Código de Comercio of 1829/1885. The Ley Concursal
+# repealed it on 2004-09-01 but left the proceedings then pending under the
+# old law (disposición transitoria 1ª), so the registry still inscribes and
+# cancels them. It prints a sub-header after "Quiebra."; a further one in the
+# same act ("Quiebra. DECLARACION. CANCELACION.") lands in fields.text.
+# DECLARACION and SOLICITUD were added on 2026-10-10 (20 events on production;
+# unknown, they were glued into the last officer's name). The sub-header is the
+# registry's tag for the inscription, not a reliable stage: under DECLARACION
+# it also inscribes a later síndico, an archive and an extinction, and
+# SOLICITUD (one event, closing organs that only a declaration creates) is no
+# registrable act of RRM art. 321. Nothing may key on the word: the enum is
+# stage-agnostic, raises no signal and does not move in_insolvency.
+# `label` is what the API, the MCP tool and the company page show for the enum.
 - es: "Quiebra. CANCELACION"
   en: BANKRUPTCY_LEGACY
   style: noarg
-  variants: ["Quiebra. CONVENIO"]
+  label: "Quiebra"
+  variants: ["Quiebra. CONVENIO", "Quiebra. DECLARACION", "Quiebra. SOLICITUD"]
 - es: "Primera inscripción (O.M. 10/6/1.997)"
   en: FIRST_INSCRIPTION
   style: noarg

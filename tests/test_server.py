@@ -139,3 +139,30 @@ def test_a_real_dsn_is_never_committed():
             if m.group(2).lower() not in ("pass", "password", "***", "user"):
                 bad.append(f"{rel}: {m.group(1)}:***@")
     assert not bad, "credentials in a public repo: " + "; ".join(bad)
+
+
+def test_list_act_types_matches_borme_core_shape():
+    """Same fields and meaning as borme-core's list_act_types and /v1/act-types.
+
+    `spanish` stays (clients read it); `english` was added when borme-core
+    started publishing it. Every enum needs an English label: a missing one
+    would reach agents as null.
+    """
+    import server
+    rows = json.loads(server.list_act_types())
+    vocab = yaml.safe_load((ROOT / "vocab" / "act_types.yaml").read_text(encoding="utf-8"))
+    assert [r["act_type"] for r in rows] == sorted({e["en"] for e in vocab})
+    for r in rows:
+        assert set(r) == {"act_type", "spanish", "english"}, r
+        assert r["spanish"] and r["english"], f"incomplete row: {r}"
+    by_enum = {r["act_type"]: r for r in rows}
+    # `label` overrides `es` where the first `es` names only one stage
+    assert by_enum["BANKRUPTCY_LEGACY"]["spanish"] == "Quiebra"
+    assert by_enum["INCORPORATION"] == {
+        "act_type": "INCORPORATION", "spanish": "Constitución", "english": "Incorporation"}
+
+
+def test_english_labels_cover_exactly_the_vocabulary():
+    labels = yaml.safe_load((ROOT / "vocab" / "labels_en.yaml").read_text(encoding="utf-8"))
+    vocab = yaml.safe_load((ROOT / "vocab" / "act_types.yaml").read_text(encoding="utf-8"))
+    assert set(labels["act_types"]) == {e["en"] for e in vocab}

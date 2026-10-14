@@ -220,17 +220,38 @@ def daily_digest(date: str | None = None) -> str:
 @lru_cache(maxsize=1)
 def _act_types() -> list[dict]:
     path = Path(__file__).parent / "vocab" / "act_types.yaml"
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=1)
+def _english_names() -> dict[str, str]:
+    """enum -> English label: the `act_types` section of labels_en.yaml, a
+    byte-for-byte copy of borme-core's file."""
+    path = Path(__file__).parent / "vocab" / "labels_en.yaml"
+    return yaml.safe_load(path.read_text(encoding="utf-8"))["act_types"]
+
+
+def act_type_catalogue() -> list[dict]:
+    """Every act type, sorted by enum, the way borme-core's list_act_types
+    publishes it: {"act_type", "spanish", "english"}.
+
+    `spanish` is the first vocabulary row's `label`, else its `es`. `es` alone
+    misleads where an enum has several stages: BANKRUPTCY_LEGACY's first `es`
+    is "Quiebra. CANCELACION", which would be shown for a declaration too.
+    """
+    names: dict[str, str] = {}
+    for e in _act_types():
+        names.setdefault(e["en"], e.get("label") or e["es"])
+    english = _english_names()
+    return [{"act_type": en, "spanish": es, "english": english.get(en)}
+            for en, es in sorted(names.items())]
 
 
 @mcp.tool()
 def list_act_types() -> str:
-    """All normalized event types (English enum + original Spanish label)."""
-    seen: dict[str, str] = {}
-    for e in _act_types():
-        seen.setdefault(e["en"], e["es"])
-    return json.dumps([{"act_type": en, "spanish": es} for en, es in sorted(seen.items())],
-                      ensure_ascii=False)
+    """All normalized event types: the enum (act_type), the original Spanish
+    label (spanish) and its English label (english)."""
+    return json.dumps(act_type_catalogue(), ensure_ascii=False)
 
 
 @mcp.tool()

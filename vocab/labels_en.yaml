@@ -1,0 +1,246 @@
+# English labels for the data pages on bormeapi.com (company, province and
+# municipality pages). Keyed by the enums of act_types.yaml and roles.yaml and
+# by the status values of company_state. The Spanish labels stay where they are
+# (act_types.yaml `label` or `es`; company_page.ROLE_LABELS, the hand-written
+# entries of _ROLE_FALLBACK, STATUS_LABELS); this file is the only place an
+# English human-readable label is written.
+#
+# Register: British/international company-law English. Where Spanish law has
+# no settled English equivalent, the term chosen is explained in a comment with
+# the Spanish original. Labels are plain text: no markup, no quotes, no "&".
+#
+# Translation rule for the governing body: "administrador" is "director", and
+# "consejero" is "director" too (Non-executive director, Independent director;
+# "consejero delegado" is the managing director). "Board member" is used only
+# where the enum is about the board as a body: the bare seat BOARD_MEMBER
+# ("Consejero") and the secretaries who are "not a board member". A Spanish
+# "director" (director financiero, director gerente) is a manager, never an
+# English "director". The humanised enums that carry BOARD_MEMBER in their name
+# (ASSOCIATION_BOARD_MEMBER, HONORARY_BOARD_MEMBER, PENSION_ENTITY_BOARD_MEMBER,
+# SUBSTITUTE_BOARD_MEMBER) have no hand-written label and still read
+# "board member".
+# tests/test_labels_en.py keeps this file complete and in step with the enums.
+
+act_types:
+  INCORPORATION: "Incorporation"
+  APPOINTMENTS: "Appointments"
+  # "Ceses/Dimisiones": a cese is any end of office (expiry of the term, death,
+  # a change in the governing body, removal), so the label must not say
+  # "removal", which a UK reader takes as a dismissal by the company.
+  TERMINATIONS: "Terminations of appointment/Resignations"
+  # "Revocaciones": powers of attorney and delegated powers withdrawn.
+  REVOCATIONS: "Revocations"
+  RE_ELECTIONS: "Re-elections"
+  # "Cancelaciones de oficio de nombramientos": the registrar, of his own
+  # motion, strikes an appointment that has lapsed. Not "ex officio", which in
+  # British usage reads as "by virtue of an office held".
+  APPOINTMENT_CANCELLATIONS: "Appointments cancelled by the registrar"
+  # "Modificaciones estatutarias".
+  STATUTORY_AMENDMENTS: "Amendments to the articles of association"
+  NAME_CHANGE: "Change of company name"
+  # "Cambio de domicilio social".
+  ADDRESS_CHANGE: "Change of registered office"
+  # "Objeto social".
+  PURPOSE_CHANGE: "Change of corporate purpose"
+  PURPOSE_EXTENSION: "Extension of corporate purpose"
+  CAPITAL_INCREASE: "Capital increase"
+  CAPITAL_REDUCTION: "Capital reduction"
+  # "Disolución": the company still exists until "Extinción" (and may be
+  # reactivated). The gloss says so because a UK reader takes "dissolution" as
+  # the date on which the company ceased to exist.
+  DISSOLUTION: "Dissolution (not the end of the company)"
+  # "Extinción": the company ceases to exist and its registry entries are
+  # cancelled. A UK reader would call this stage "dissolved"; that word is
+  # already taken by DISSOLUTION, so the Spanish distinction is kept.
+  EXTINCTION: "Extinction (removal from the register)"
+  # "Declaración de concurso": the court order that opens the proceedings
+  # (the term of Regulation (EU) 2015/848), not a statement by the company.
+  INSOLVENCY_DECLARATION: "Opening of insolvency proceedings"
+  # "Situación concursal": a later stage of the same proceedings.
+  INSOLVENCY_STATUS: "Status of insolvency proceedings"
+  MERGER_BY_ABSORPTION: "Merger by absorption"
+  # "Fusión por unión": the merging companies disappear into a new one.
+  MERGER_BY_UNION: "Merger by formation of a new company"
+  # "Escisión parcial" / "Escisión total".
+  PARTIAL_SPIN_OFF: "Partial demerger"
+  TOTAL_SPIN_OFF: "Total demerger"
+  # "Transformación de sociedad": S.L. to S.A. and the like, and also to or
+  # from a form that is not a company type (cooperative, civil partnership).
+  TRANSFORMATION: "Change of legal form"
+  # "Sociedad unipersonal".
+  SOLE_SHAREHOLDER_STATUS: "Sole-shareholder company"
+  SOLE_SHAREHOLDER_DECLARATION: "Declaration of sole-shareholder status"
+  SOLE_SHAREHOLDER_CHANGE: "Change of sole shareholder"
+  # "Desembolso de dividendos pasivos": shareholders pay up capital still owed.
+  CALLED_UP_CAPITAL_PAID: "Payment of unpaid share capital"
+  SOLE_SHAREHOLDER_STATUS_LOST: "Loss of sole-shareholder status"
+  # "Reapertura hoja registral".
+  REGISTRY_SHEET_REOPENED: "Reopening of the registry sheet"
+  # "Adaptación Ley 2/95", "Adaptación Ley 44/2015" and the bare "Adaptación
+  # de sociedad": one enum for several laws, so the label names none.
+  LEGAL_ADAPTATION: "Adaptation of the articles to new legislation"
+  COMPANY_WEBSITE: "Company website"
+  FOREIGN_BRANCH_FIRST: "First branch of a foreign company"
+  # "Cierre provisional hoja registral ..." in its three published variants.
+  # The first is printed either with "art. 137.2 Ley 43/1995 Impuesto de
+  # Sociedades" or with "por baja en el índice de Entidades Jurídicas"; the
+  # label names the cause the two forms share, not the article only one cites.
+  PROVISIONAL_SHEET_CLOSURE_TAX: "Provisional closure of the registry sheet (removal from the tax index of entities)"
+  PROVISIONAL_SHEET_CLOSURE_NIF_REVOKED: "Provisional closure of the registry sheet (NIF revoked)"
+  PROVISIONAL_SHEET_CLOSURE_INSOLVENCY: "Provisional closure of the registry sheet (art. 485 of the Insolvency Act)"
+  # "Crédito incobrable": a collection authority declares a debt the company
+  # owes uncollectible (the company is a failed debtor, RGR art. 62.3), not a
+  # debt owed to the company that it writes off.
+  BAD_DEBT_WRITE_OFF: "Debt owed by the company declared uncollectible"
+  # "Anotación preventiva": a provisional, protective entry (often of a claim).
+  PREVENTIVE_ANNOTATION: "Precautionary entry"
+  # "Emisión de obligaciones".
+  BOND_ISSUE: "Bond issue"
+  POWERS_MODIFICATION: "Amendment of powers of attorney"
+  # "Segregación": a business unit is transferred to another company in
+  # exchange for shares, and the transferor survives.
+  SEGREGATION: "Hive-down of a business unit"
+  BRANCH: "Branch"
+  # "Reactivación de la sociedad", printed with or without "(Art. 242 del
+  # Reglamento del Registro Mercantil)"; the label carries no citation.
+  COMPANY_REACTIVATION: "Reactivation of the company"
+  # "Cesión global de activo y pasivo".
+  GLOBAL_TRANSFER_ASSETS_LIABILITIES: "Global transfer of assets and liabilities"
+  # The BORME heading is the article itself, "Articulo 378.5 del Reglamento del
+  # Registro Mercantil" (rendered "Commercial Registry Regulations" wherever it
+  # is cited): the company files a certificate that its accounts have not been
+  # approved, which prevents the closure of the registry for unfiled accounts.
+  # No accounts are filed.
+  ACCOUNTS_NON_APPROVAL_JUSTIFICATION: "Accounts not approved (art. 378.5 of the Commercial Registry Regulations)"
+  # "Fe de erratas".
+  ERRATUM: "Correction of errors"
+  # "Otros conceptos".
+  OTHER: "Other items"
+  # "Empresario Individual".
+  SOLE_TRADER: "Sole trader"
+  # "Datos registrales": the same English as the page heading co_h2_registry.
+  REGISTRAL_DATA: "Registry details"
+  DURATION_CHANGE: "Change of duration"
+  # "Acuerdo de ampliación de capital social sin ejecutar".
+  CAPITAL_INCREASE_UNEXECUTED: "Capital increase resolved but not executed"
+  # "Suspensión de pagos": the composition procedure of the pre-reform law
+  # (Ley de Suspensión de Pagos of 1922).
+  SUSPENSION_OF_PAYMENTS: "Suspension of payments"
+  # "Quiebra" (the display `label` of act_types.yaml, not its `es`): the
+  # bankruptcy of the law that preceded the Insolvency Act (the Commercial
+  # Codes of 1829 and 1885 and the Civil Procedure Act of 1881), for
+  # proceedings still governed by it. The label names no code: the 1885 Code
+  # is still in force for everything else. One enum for every sub-header the registry prints after "Quiebra."
+  # (CANCELACION, CONVENIO, DECLARACION, SOLICITUD), and the sub-header is not
+  # a reliable stage, so the label names none -- exactly as the Spanish one.
+  BANKRUPTCY_LEGACY: "Bankruptcy (legacy proceedings)"
+  # "Primera inscripción (O.M. 10/6/1.997)".
+  FIRST_INSCRIPTION: "First registration (Ministerial Order of 10 June 1997)"
+
+# Roles. Every enum not listed here is shown as its humanised enum
+# (JOINT_LIQUIDATOR -> "Joint liquidator"); a role is listed when that would be
+# wrong or unidiomatic. The first twelve mirror company_page.ROLE_LABELS, in the
+# same order.
+roles:
+  # "Administrador único".
+  SOLE_DIRECTOR: "Sole director"
+  # "Apoderado": holder of a notarised power of attorney, not a board office.
+  PROXY_HOLDER: "Attorney-in-fact"
+  # "Administrador solidario": each director may act alone.
+  JOINT_AND_SEVERAL_DIRECTOR: "Joint and several director"
+  LIQUIDATOR: "Liquidator"
+  # "Apoderado solidario". The enum says SOLE, the role is joint and several:
+  # each attorney may act alone. The humanised enum would be wrong.
+  SOLE_PROXY_HOLDER: "Joint and several attorney-in-fact"
+  AUDITOR: "Auditor"
+  # "Consejero".
+  BOARD_MEMBER: "Board member"
+  # "Presidente".
+  CHAIRPERSON: "Chairperson"
+  # "Administrador mancomunado": the directors must act together.
+  JOINT_DIRECTOR: "Joint director"
+  SECRETARY: "Secretary"
+  # "Apoderado mancomunado".
+  JOINT_PROXY_HOLDER: "Joint attorney-in-fact"
+  # "Apoderado mancomunado y solidario".
+  PROXY_HOLDER_MIXED: "Attorney-in-fact (joint, and joint and several)"
+  # acts.CONTEXT_ROLES: "Depositario" inside a quiebra entry (BANKRUPTCY_LEGACY).
+  BANKRUPTCY_DEPOSITARY: "Bankruptcy depositary"
+  # "Administrador concursal o síndico de la quiebra" (hand-written in
+  # company_page._ROLE_FALLBACK since 2026-10-10): one enum for the insolvency
+  # administrator of the Insolvency Act and for the síndico of a quiebra under
+  # the old law. The humanised enum would name only the first of the two.
+  INSOLVENCY_ADMINISTRATOR: "Insolvency administrator or bankruptcy trustee"
+  # "Consejero delegado": the board member to whom the board has delegated its
+  # powers, the managing director. "Managing board member", the humanised enum,
+  # reads as one member of a management board.
+  MANAGING_BOARD_MEMBER: "Managing director"
+  # "Consejero delegado mancomunado".
+  JOINT_MANAGING_BOARD_MEMBER: "Joint managing director"
+  # "Consejero delegado solidario": the same SOLE-means-solidario trap as above.
+  SOLE_MANAGING_BOARD_MEMBER: "Joint and several managing director"
+  # "Consejero delegado mancomunado y solidario".
+  MANAGING_BOARD_MEMBER_MIXED: "Managing director (joint, and joint and several)"
+  # "Director gerente" ("D. Gerente"): a manager, who need not sit on the board.
+  # The humanised enum, "Managing director", is the English for the consejero
+  # delegado above.
+  MANAGING_DIRECTOR: "Executive manager"
+  # "Administrador", "Director", "Director financiero" and other unspecific
+  # titles: the enum mixes members of the governing body with managers (a
+  # Spanish "director" is a manager), so the label claims neither.
+  DIRECTOR_GENERIC: "Director or manager (unspecified)"
+  # "Consejero independiente": see the translation rule at the top of the file.
+  INDEPENDENT_BOARD_MEMBER: "Independent director"
+  # "Apoderado de sucursal": a power of attorney, not a proxy for a meeting.
+  BRANCH_PROXY_HOLDER: "Attorney-in-fact of a branch"
+  # "Entidad encargada del registro contable": keeps the register of shares
+  # held in book-entry form. Nothing to do with accounting.
+  ACCOUNTING_REGISTRY_ENTITY: "Keeper of the share register"
+  # "Socio": a member of whatever the entity is, in most entries a shareholder
+  # of a limited company. "Partner" alone would say the entity is a partnership.
+  PARTNER: "Member (shareholder or partner)"
+  # "Socio fundador" / "Fundador".
+  FOUNDING_PARTNER: "Founding shareholder"
+  # "Representante ante el SEPBLAC" (the anti-money-laundering authority).
+  AML_REPRESENTATIVE: "AML representative (SEPBLAC)"
+  # "Secretario no consejero" / "Vicesecretario no consejero". Spelled as the
+  # humanised VICE_SECRETARY reads ("Vice secretary"): the two can share a page.
+  NON_BOARD_SECRETARY: "Secretary (not a board member)"
+  NON_BOARD_VICE_SECRETARY: "Vice secretary (not a board member)"
+  NON_EXECUTIVE_CHAIRPERSON: "Non-executive chairperson"
+  NON_EXECUTIVE_DIRECTOR: "Non-executive director"
+  # "Auxiliar delegado / representante de la administración concursal".
+  INSOLVENCY_ADMIN_ASSISTANT: "Assistant to the insolvency administrator"
+  INSOLVENCY_ADMIN_REPRESENTATIVE: "Representative of the insolvency administrator"
+  # "Representante art. 143 RRM": the natural person who acts for a legal entity
+  # that sits as a director.
+  LEGAL_ENTITY_DIRECTOR_REPRESENTATIVE: "Representative of a corporate director (art. 143 of the Commercial Registry Regulations)"
+
+# Company status: the badge on the page and the phrase used in the meta
+# description ("ACME SL: active company, registered office in ...").
+statuses:
+  active:
+    badge: "Active"
+    phrase: "active company"
+  # "Extinguida": no longer exists; see EXTINCTION above.
+  extinct:
+    badge: "Extinct"
+    phrase: "extinct company"
+  # "Hoja cerrada" / "sociedad con hoja registral cerrada": set by the three
+  # "Cierre provisional" acts (removal from the tax index of entities, revoked
+  # NIF, conclusion of insolvency proceedings). The closure is provisional and
+  # the company has not ended; "closed" alone reads as a closed company.
+  sheet_closed:
+    badge: "Registry sheet provisionally closed"
+    phrase: "company with a provisionally closed registry sheet"
+  # "Disuelta": dissolution registered and no "Extinción" published. The company
+  # still exists; a UK reader takes the bare "Dissolved" as its end. See
+  # DISSOLUTION.
+  dissolved:
+    badge: "Dissolved (in liquidation)"
+    phrase: "dissolved company (in liquidation)"
+
+# "En concurso": the second badge, and the suffix appended to the status phrase.
+insolvency:
+  badge: "In insolvency proceedings"
+  suffix: " in insolvency proceedings"

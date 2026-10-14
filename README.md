@@ -27,7 +27,7 @@ Free, read-only, capped at 200 rows per query. Backed by the full 17-year corpus
 | `company_history` | Full timeline of one company (fuzzy name match) |
 | `daily_digest` | One day's registry activity, aggregated |
 | `registry_stats` | Corpus coverage and volume stats |
-| `list_act_types` | The 52-enum vocabulary with Spanish originals |
+| `list_act_types` | The 52-enum vocabulary: each enum with its Spanish original and English label |
 | `company_by_nif` | Resolve a NIF/CIF tax ID to a company (cross-referenced from open official sources, ~560k companies — 17% of the corpus) |
 | `recent_signals` | Sample of derived risk signals: insolvencies, phoenix companies, mass officer exits, AEAT debtors (last 7 days) |
 

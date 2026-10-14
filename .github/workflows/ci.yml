@@ -34,4 +34,8 @@ jobs:
           import asyncio, server
           names = [t.name for t in asyncio.run(server.mcp.list_tools())]
           assert len(names) >= 7, names
-          print('tools:', names)"
+          print('tools:', names)
+          import json
+          rows = json.loads(server.list_act_types())
+          assert rows and all(r['english'] for r in rows), rows
+          print('act types:', len(rows))"

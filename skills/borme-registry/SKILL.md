@@ -77,10 +77,14 @@ and do not retry.
   `INSOLVENCY_DECLARATION`, …). Do not invent enum names from the Spanish
   wording.
 - **Insolvency:** filter on both `INSOLVENCY_DECLARATION` and
-  `INSOLVENCY_STATUS`. A *Situación concursal* notice can be a declaration,
-  the opening of liquidation or the end of the proceedings: read `payload`
-  before you say a company was declared insolvent; otherwise call it an
-  insolvency-proceedings notice.
+  `INSOLVENCY_STATUS`. An `INSOLVENCY_STATUS` (*Situación concursal*) notice
+  can record any stage of the proceedings, among them a request for a
+  declaration, the declaration, the appointment of the insolvency
+  administrator, the opening of the liquidation phase and the conclusion:
+  read `payload` before you say a company was declared insolvent; otherwise
+  call it an insolvency-proceedings notice. The older suspension-of-payments
+  and bankruptcy procedures the registry still records are
+  `SUSPENSION_OF_PAYMENTS` and `BANKRUPTCY_LEGACY`.
 - **Provinces** take the name BORME prints, without regard to accents or case:
   `MADRID`, `CADIZ`. Either name of a bilingual pair works (`VALENCIA` or
   `VALÈNCIA`), and so do common alternatives (`VIZCAYA`, `GERONA`, `SEVILLE`).

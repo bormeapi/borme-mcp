@@ -193,7 +193,17 @@ def recent_signals(signal_type: str | None = None) -> str:
 @mcp.tool()
 def daily_digest(date: str | None = None) -> str:
     """Digest of one BORME publication day (default: latest in the database):
-    totals by event type, top provinces, and all insolvency declarations."""
+    totals by event type, top provinces, and `insolvencies`: every event of
+    the day whose act types include INSOLVENCY_DECLARATION or
+    INSOLVENCY_STATUS, with company and province only. SUSPENSION_OF_PAYMENTS,
+    BANKRUPTCY_LEGACY and PROVISIONAL_SHEET_CLOSURE_INSOLVENCY are not listed.
+    An INSOLVENCY_STATUS (Situación concursal) notice can record any stage of
+    the proceedings, among them a request for a declaration, the declaration,
+    the appointment of the insolvency administrator, the opening of the
+    liquidation phase and the conclusion. Call the entries
+    insolvency-proceedings notices; before saying a company was declared
+    insolvent, read its act's payload with search_events (date_from = date_to
+    = that day, both act types, company_name_contains)."""
     with _conn() as conn:
         if not date:
             date = conn.execute("SELECT max(date) FROM events").fetchone()[0].isoformat()

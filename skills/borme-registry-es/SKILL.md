@@ -79,10 +79,14 @@ indique qué plan lo cubre y no reintente.
   `INSOLVENCY_DECLARATION`…). No invente enumerados a partir del texto en
   español.
 - **Concursos:** filtre por `INSOLVENCY_DECLARATION` e `INSOLVENCY_STATUS`. Un
-  anuncio de *Situación concursal* puede ser la declaración de concurso, la
-  apertura de la fase de liquidación o la conclusión del concurso: lea
+  anuncio de `INSOLVENCY_STATUS` (*Situación concursal*) puede recoger
+  cualquier fase del procedimiento, entre ellas la solicitud de declaración,
+  la declaración de concurso, el nombramiento de la administración concursal,
+  la apertura de la fase de liquidación y la conclusión del concurso: lea
   `payload` antes de decir que una sociedad fue declarada en concurso; si no,
-  llámelo anuncio concursal.
+  llámelo anuncio concursal. Las antiguas suspensiones de pagos y quiebras
+  que el Registro aún recoge son `SUSPENSION_OF_PAYMENTS` y
+  `BANKRUPTCY_LEGACY`.
 - **Las provincias** se escriben como las imprime el BORME, sin importar
   tildes ni mayúsculas: `MADRID`, `CADIZ`. En los nombres dobles vale
   cualquiera de las dos formas (`VALENCIA` o `VALÈNCIA`), y también las

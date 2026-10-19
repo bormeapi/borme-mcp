@@ -34,18 +34,31 @@ def test_tools_enumerate_without_a_database(tools, monkeypatch):
     assert len(tools) >= 7
 
 
-def test_readme_tool_table_lists_exactly_the_tools_that_exist(tools):
+# Tools the hosted endpoint serves and this server.py does not. The README
+# documents the hosted endpoint, so its table lists them too; the self-hosting
+# section has to name each one as missing here.
+HOSTED_ONLY = {"brand_owner", "company_brands"}
+
+
+@pytest.mark.parametrize("readme_name", ["README.md", "README.es.md"])
+def test_readme_tool_table_lists_exactly_the_tools_that_exist(tools, readme_name):
     """The table is the only place a human reads what this server offers.
 
     It drifted before: the hosted deployment grew tools the README never
     mentioned, so people self-hosting and people reading the page were told
-    different things about the same product.
+    different things about the same product. A hosted-only tool is allowed
+    only when it is declared above and the self-hosting section says so.
     """
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    readme = (ROOT / readme_name).read_text(encoding="utf-8")
     documented = set(re.findall(r"^\| `(\w+)`", readme, re.M))
-    assert documented == set(tools), (
-        f"only in README: {documented - set(tools)}; "
-        f"only in server.py: {set(tools) - documented}")
+    expected = set(tools) | HOSTED_ONLY
+    assert documented == expected, (
+        f"only in {readme_name}: {documented - expected}; "
+        f"missing from {readme_name}: {expected - documented}")
+    assert not HOSTED_ONLY & set(tools), "server.py has it now: drop it from HOSTED_ONLY"
+    self_hosting = readme.split("server.py` ", 1)[1].split("\n## ", 1)[0]
+    for name in HOSTED_ONLY:
+        assert f"`{name}`" in self_hosting, f"{readme_name}: self-hosting section does not name {name}"
 
 
 def test_every_tool_explains_itself(tools):

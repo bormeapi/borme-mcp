@@ -4,7 +4,9 @@ The tools, with their names, descriptions and input schemas, come from
 tools.json, a copy of the hosted server's tools/list (regenerate it with
 scripts/update_tools.py). Each tool call becomes one or more requests to the
 public REST API at https://api.bormeapi.com/v1, with BORME_API_KEY, when set,
-in the X-API-Key header. Nothing touches the network until a tool is called.
+in the X-API-Key header. The prompts and resources come from prompts.py, a
+copy of the hosted server's module. Nothing touches the network until a tool
+is called or a resource is read.
 
 The hosted server at https://mcp.bormeapi.com/mcp is the recommended way to
 use BORME API from an MCP client; this server is for stdio-only clients and
@@ -21,7 +23,10 @@ import httpx
 import mcp.server.stdio
 import mcp.types as types
 from mcp.server.lowlevel import NotificationOptions, Server
+from mcp.server.lowlevel.helper_types import ReadResourceContents
 from mcp.server.models import InitializationOptions
+
+import prompts
 
 VERSION = "2.0.0"
 HERE = Path(__file__).resolve().parent
@@ -227,6 +232,55 @@ HANDLERS = {
 }
 
 
+# --- prompts and resources ----------------------------------------------
+
+# Prompt arguments the text can do without; every other argument is required.
+OPTIONAL_ARGS = {"board_changes": {"since"}, "new_companies_digest": {"date"}}
+
+# The resources this server serves. The hosted server also has a
+# borme://company/{slug} template; here company_history does that job.
+# Descriptions differ from the hosted ones where the REST API differs.
+LOCAL_RESOURCES = {
+    "act-types": prompts.RESOURCES["act-types"]["description"],
+    "provinces": (
+        "The 52 province values BORME prints (Ceuta and Melilla among them), "
+        "each with the spellings listed for it, plus Spain's autonomous "
+        "communities and the autonomous cities, each with its accepted filter "
+        "names and the province values included when filtering by that "
+        "community or city. The same list "
+        "as GET /v1/provinces. Needs BORME_API_KEY (a free key works); "
+        "without one, reading it returns how to get a key."),
+    "coverage": (
+        "How fresh the BORME data is: the latest publication day held and, "
+        "when BORME_API_KEY is set and the daily statistics return events, "
+        "the event-weighted parse completeness of up to the last 30 "
+        "publication days. The same report as the registry_stats tool of this server."),
+}
+RESOURCE_BY_URI = {prompts.RESOURCES[k]["uri"]: k for k in LOCAL_RESOURCES}
+
+
+async def read_provinces(api):
+    if not api.has_key:
+        return {"detail": (
+            "This resource reads GET /v1/provinces, which needs a BORME API "
+            "key when used through the local server: set BORME_API_KEY (a free "
+            "key is available at https://bormeapi.com/account), or connect to "
+            "the hosted server at https://mcp.bormeapi.com/mcp.")}
+    return await api.get("/v1/provinces")
+
+
+async def read_act_types(api):
+    return await list_act_types(api, {})
+
+
+async def read_coverage(api):
+    return await registry_stats(api, {})
+
+
+READERS = {"act-types": read_act_types, "provinces": read_provinces,
+           "coverage": read_coverage}
+
+
 # --- MCP wiring -----------------------------------------------------------
 
 @server.list_tools()
@@ -255,6 +309,65 @@ async def call_tool(name, arguments):
                               text=json.dumps(result, ensure_ascii=False, indent=1))]
 
 
+@server.list_prompts()
+async def list_prompts():
+    return [
+        types.Prompt(
+            name=name, title=spec["title"], description=spec["description"],
+            arguments=[types.PromptArgument(
+                name=arg, description=text,
+                required=arg not in OPTIONAL_ARGS.get(name, ()))
+                for arg, text in spec["arguments"].items()])
+        for name, spec in prompts.PROMPTS.items()
+    ]
+
+
+@server.get_prompt()
+async def get_prompt(name, arguments):
+    spec = prompts.PROMPTS.get(name)
+    if spec is None:
+        raise ValueError(f"unknown prompt: {name}")
+    given = {k: str(v) for k, v in (arguments or {}).items() if k in spec["arguments"]}
+    missing = [a for a in spec["arguments"]
+               if a not in OPTIONAL_ARGS.get(name, ()) and not given.get(a, "").strip()]
+    if missing:
+        raise ValueError(f"{name}: missing argument(s) {', '.join(missing)}")
+    text = prompts.RENDER[name](**given)
+    return types.GetPromptResult(
+        description=spec["description"],
+        messages=[types.PromptMessage(
+            role="user", content=types.TextContent(type="text", text=text))])
+
+
+@server.list_resources()
+async def list_resources():
+    return [
+        types.Resource(uri=prompts.RESOURCES[key]["uri"], name=key,
+                       title=prompts.RESOURCES[key]["title"],
+                       description=description, mimeType="application/json")
+        for key, description in LOCAL_RESOURCES.items()
+    ]
+
+
+@server.read_resource()
+async def read_resource(uri):
+    key = RESOURCE_BY_URI.get(str(uri).rstrip("/"))
+    if key is None:
+        raise ValueError(f"unknown resource: {uri}")
+    api = Api()
+    try:
+        result = await READERS[key](api)
+    except ApiError as err:
+        detail = err.body.get("detail") if isinstance(err.body, dict) else err.body
+        result = {"error": f"BORME API answered HTTP {err.status}", "detail": detail}
+        if err.status == 401 and not api.has_key:
+            result["hint"] = NO_KEY_HINT
+    finally:
+        await api.close()
+    return [ReadResourceContents(content=json.dumps(result, ensure_ascii=False, indent=1),
+                                 mime_type="application/json")]
+
+
 async def main():
     async with mcp.server.stdio.stdio_server() as (read, write):
         await server.run(read, write, InitializationOptions(
@@ -271,6 +384,8 @@ async def main():
 
 
 if __name__ == "__main__":
+    if set(prompts.RENDER) != set(prompts.PROMPTS) or set(READERS) != set(LOCAL_RESOURCES):
+        raise SystemExit("prompts.py and server.py disagree")
     if set(HANDLERS) != set(TOOLS):
         raise SystemExit(f"tools.json and server.py disagree: "
                          f"{sorted(set(HANDLERS) ^ set(TOOLS))}")

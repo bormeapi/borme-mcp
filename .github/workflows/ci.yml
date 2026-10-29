@@ -3,7 +3,8 @@ name: ci
 # This repo holds a local stdio MCP server that wraps the BORME API REST
 # endpoints, plus the connection guides for the hosted server at
 # mcp.bormeapi.com. CI checks that the server lists exactly the tools in
-# tools.json (with no key and no network, in the image too), that tools.json
+# tools.json and the 4 prompts and 3 resources the hosted server also offers
+# (with no key and no network, in the image too), that tools.json
 # still matches the hosted server, and that the public tree discloses nothing
 # it should not.
 #
@@ -37,7 +38,7 @@ jobs:
         run: python scripts/update_tools.py --check
       - name: install the server
         run: pip install -r requirements.txt
-      - name: tools/list over stdio (python server.py)
+      - name: tools, prompts and resources over stdio (python server.py)
         run: python tests/test_tools_list.py
 
   docker:
@@ -50,5 +51,5 @@ jobs:
         with:
           python-version: "3.12"
       - run: docker build -t borme-mcp:ci .
-      - name: tools/list over stdio through the image, offline
+      - name: tools, prompts and resources over stdio through the image, offline
         run: python tests/test_tools_list.py docker run -i --rm --network none borme-mcp:ci

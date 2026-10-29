@@ -253,6 +253,37 @@ CI fails while `tools.json` and the hosted server differ.
 Each tool's description and parameter schema, as returned by `tools/list`,
 explain its parameters.
 
+## Prompts and resources
+
+Besides tools, the local stdio server offers **prompts**, ready-made
+instructions that your client can offer you (in Claude, from the **+** menu;
+in other clients, wherever they list a server's prompts), and **resources**,
+reference data that your client can attach as context. A prompt only supplies
+the instructions: the tool calls it leads to count against your plan as usual.
+
+- `company_due_diligence` (company): a report on one company's
+  identification, published history, officer appointments and insolvency
+  notices, citing the BORME id of each act.
+- `board_changes` (company, since): appointments, re-elections, terminations
+  and resignations, revocations and ex officio cancellations of appointments,
+  optionally since a date.
+- `new_companies_digest` (province, date): companies whose incorporation
+  notices were published in BORME on one day, for one province or autonomous
+  community. If date is omitted, it uses the latest publication day.
+- `check_nif` (nif): which company a NIF/CIF is linked to in our data, and
+  its latest published acts (Basic plan and above).
+
+The prompts tell the model to cite BORME ids, to tell a name match from a
+confirmed identification or ownership, and not to treat a missing result as
+proof that something does not exist.
+
+- `borme://act-types`: the act types, as `list_act_types` returns them.
+- `borme://provinces`: the provinces and autonomous communities that the
+  province filters accept. It needs `BORME_API_KEY`; without a key, reading
+  the resource returns instructions for obtaining a free API key.
+- `borme://coverage`: data freshness, as `registry_stats` returns it on this
+  server.
+
 ## Plans and limits
 
 - **No key or free key:** 50 requests a day, events from the last 7 days,
@@ -297,8 +328,9 @@ Plans and prices: [bormeapi.com/#pricing](https://bormeapi.com/#pricing).
   The skill needs the MCP server to be connected.
 - [`vocab/`](vocab/) - the act-type vocabulary: each enum with its Spanish
   heading and English label.
-- [`server.py`](server.py), [`tools.json`](tools.json) and the
-  [`Dockerfile`](Dockerfile) - the local stdio server described above;
+- [`server.py`](server.py), [`prompts.py`](prompts.py),
+  [`tools.json`](tools.json) and the [`Dockerfile`](Dockerfile) - the local
+  stdio server described above, with its prompts and resources;
   [`scripts/update_tools.py`](scripts/update_tools.py) regenerates
   `tools.json` from the hosted server.
 

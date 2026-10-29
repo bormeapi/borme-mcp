@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY server.py tools.json ./
+COPY server.py prompts.py tools.json ./
 USER nobody
 # Optional: -e BORME_API_KEY=<your key>; most tools need one through REST.
 CMD ["python", "server.py"]

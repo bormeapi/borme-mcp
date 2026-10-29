@@ -1,0 +1,31 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.bormeapi/borme-mcp",
+  "title": "BORME API",
+  "description": "Spain's company registry gazette (BORME): more than 9.6 million events since 2009. API key or OAuth.",
+  "repository": {
+    "url": "https://github.com/bormeapi/borme-mcp",
+    "source": "github",
+    "id": "1293595758"
+  },
+  "version": "1.2.0",
+  "websiteUrl": "https://bormeapi.com/mcp",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.bormeapi.com/mcp",
+      "headers": [
+        {
+          "name": "X-API-Key",
+          "description": "Your BORME API key. Leave it out to use the free plan.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    },
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.bormeapi.com/mcp/oauth"
+    }
+  ]
+}

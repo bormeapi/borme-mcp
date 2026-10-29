@@ -11,9 +11,10 @@ than 9.6 million events since 2009, company histories, company search by name,
 NIF lookup, trademarks and trading names, and risk signals.
 
 The server is hosted at `mcp.bormeapi.com`; there is nothing to install or
-run. This repository holds what you need around it: connection settings for
-each client, an agent skill, the event-type vocabulary, and a small Docker
-image that bridges stdio clients to the hosted server.
+run, and it is the recommended way to connect. This repository holds what you
+need around it: connection settings for each client, an agent skill, the
+event-type vocabulary, and a local stdio server that wraps the BORME API REST
+endpoints, for clients that only start servers over stdio.
 
 The full guide, kept up to date, is at
 [bormeapi.com/mcp](https://bormeapi.com/mcp). If this README and that page
@@ -186,20 +187,46 @@ curl -s https://mcp.bormeapi.com/mcp \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
 
-### Docker (stdio bridge)
+### Local stdio server
 
-The [Dockerfile](Dockerfile) builds a stdio bridge to
-`https://mcp.bormeapi.com/mcp` with mcp-remote. It holds no data and no
-server code; MCP directories build it to list the tools, and you can use it
-with any client that starts servers over stdio. It uses your API key, or the
-free plan without one; it does not sign in with OAuth.
+[`server.py`](server.py) is a local stdio server that wraps the BORME API REST
+endpoints; the hosted server at mcp.bormeapi.com is the recommended way. It
+offers the same tools, with the same names, descriptions and parameters, as
+the hosted server: they are copied into [`tools.json`](tools.json). Each tool
+call makes one or more requests to `https://api.bormeapi.com/v1/...`. It
+holds no data; MCP directories build an image from its
+[Dockerfile](Dockerfile) to list the tools.
+
+- Listing the tools needs no key and no network.
+- Calling a tool needs an API key for every tool except `list_act_types` and
+  `registry_stats`: the REST API, unlike the hosted MCP server, has no keyless
+  free plan. Your free key is in your
+  [account](https://bormeapi.com/account). Set it as `BORME_API_KEY`.
+- `daily_digest` and `registry_stats` return fewer fields than on the hosted
+  server, because the REST API has no single endpoint for them:
+  `daily_digest` returns the day's event count, its parse completeness and
+  up to 200 insolvency notices, and `registry_stats` returns the latest
+  publication date and, with a key, the parse completeness of the last 30
+  publication days.
+- It does not sign in with OAuth.
+
+With Docker:
 
 ```bash
 docker build -t borme-mcp .
 docker run -i --rm -e BORME_API_KEY=YOUR_KEY borme-mcp
 ```
 
-Leave out `-e BORME_API_KEY=...` to use the free plan.
+With Python 3.12:
+
+```bash
+pip install -r requirements.txt
+BORME_API_KEY=YOUR_KEY python server.py
+```
+
+When the hosted server changes its tools, run
+`python scripts/update_tools.py` to regenerate `tools.json` and commit it.
+CI fails while `tools.json` and the hosted server differ.
 
 ## Tools
 
@@ -270,8 +297,10 @@ Plans and prices: [bormeapi.com/#pricing](https://bormeapi.com/#pricing).
   The skill needs the MCP server to be connected.
 - [`vocab/`](vocab/) - the act-type vocabulary: each enum with its Spanish
   heading and English label.
-- [`Dockerfile`](Dockerfile) and [`entrypoint.sh`](entrypoint.sh) - the stdio
-  bridge described above.
+- [`server.py`](server.py), [`tools.json`](tools.json) and the
+  [`Dockerfile`](Dockerfile) - the local stdio server described above;
+  [`scripts/update_tools.py`](scripts/update_tools.py) regenerates
+  `tools.json` from the hosted server.
 
 ## Related
 

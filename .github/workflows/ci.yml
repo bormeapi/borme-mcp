@@ -1,9 +1,15 @@
 name: ci
 
-# This repo connects clients to the hosted server at mcp.bormeapi.com; it
-# holds no server code. CI checks what strangers see: the READMEs match the
-# live tool list, the public tree discloses nothing it should not, and the
-# stdio bridge image that MCP directories build still lists the tools.
+# This repo holds a local stdio MCP server that wraps the BORME API REST
+# endpoints, plus the connection guides for the hosted server at
+# mcp.bormeapi.com. CI checks that the server lists exactly the tools in
+# tools.json (with no key and no network, in the image too), that tools.json
+# still matches the hosted server, and that the public tree discloses nothing
+# it should not.
+#
+# If the "tools.json matches the hosted server" step fails, the hosted tools
+# changed: run `python scripts/update_tools.py`, commit tools.json and, for a
+# new or renamed tool, add its handler to server.py.
 on:
   push:
     branches: [main]
@@ -22,37 +28,27 @@ jobs:
         run: |
           curl -sS --fail --retry 3 https://mcp.bormeapi.com/mcp \
             -H "Content-Type: application/json" \
-            -H "Accept: application/json, text/event-stream" \
+            -H "Accept: application/json" \
             -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' \
             -o "$RUNNER_TEMP/tools.json"
       - name: repository guards and README tool list
         run: python scripts/check_repo.py "$RUNNER_TEMP/tools.json"
+      - name: tools.json matches the hosted server
+        run: python scripts/update_tools.py --check
+      - name: install the server
+        run: pip install -r requirements.txt
+      - name: tools/list over stdio (python server.py)
+        run: python tests/test_tools_list.py
 
   docker:
-    # The image is what Glama builds to inspect the server. This makes every
-    # commit rebuild it and list the tools through it over stdio.
+    # The image is what Glama builds to inspect the server. Listing must work
+    # with no key and no network, so the container runs with --network none.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
       - run: docker build -t borme-mcp:ci .
-      - name: tools/list over stdio through the image
-        run: |
-          {
-            echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}'
-            sleep 5
-            echo '{"jsonrpc":"2.0","method":"notifications/initialized"}'
-            echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
-            sleep 10
-          } | timeout 60 docker run -i --rm borme-mcp:ci > "$RUNNER_TEMP/stdio.out" || true
-          python - "$RUNNER_TEMP/stdio.out" <<'PY'
-          import json, sys
-          tools = None
-          for line in open(sys.argv[1], encoding="utf-8"):
-              line = line.strip()
-              if line.startswith("{"):
-                  msg = json.loads(line)
-                  if msg.get("id") == 2:
-                      tools = [t["name"] for t in msg["result"]["tools"]]
-          assert tools and len(tools) >= 10, tools
-          print("tools:", tools)
-          PY
+      - name: tools/list over stdio through the image, offline
+        run: python tests/test_tools_list.py docker run -i --rm --network none borme-mcp:ci

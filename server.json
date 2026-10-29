@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.bormeapi/borme-mcp",
+  "name": "com.bormeapi/borme-mcp",
   "title": "BORME API",
   "description": "Spain's company registry gazette (BORME): more than 9.6 million events since 2009. API key or OAuth.",
   "repository": {

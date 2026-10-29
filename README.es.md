@@ -267,6 +267,42 @@ coincidan.
 La descripción y el esquema de parámetros de cada herramienta, tal como los
 devuelve `tools/list`, explican sus parámetros. Están en inglés.
 
+## Prompts y recursos
+
+Además de las herramientas, el servidor stdio local ofrece **prompts**,
+instrucciones predefinidas que su cliente puede ofrecerle (en Claude, desde el
+menú **+**; en otros clientes, en la sección que muestre los prompts del
+servidor), y **recursos**, datos de referencia que su cliente puede adjuntar
+como contexto. Un prompt solo aporta las instrucciones: las llamadas a las
+herramientas que genera se contabilizan en su plan de la forma habitual.
+
+- `company_due_diligence` (company): un informe sobre la identificación de
+  una sociedad, su historial publicado, los nombramientos de administradores
+  y otros cargos y sus anuncios concursales, con el identificador del BORME
+  de cada acto.
+- `board_changes` (company, since): nombramientos, reelecciones, ceses y
+  dimisiones, revocaciones y cancelaciones de oficio de nombramientos,
+  opcionalmente desde una fecha.
+- `new_companies_digest` (province, date): las sociedades cuyos actos de
+  constitución se publicaron en el BORME en una fecha determinada, en una
+  provincia o comunidad autónoma. Si omite date, se utiliza el último día de
+  publicación disponible.
+- `check_nif` (nif): a qué sociedad está vinculado un NIF/CIF en nuestros
+  datos y sus actos publicados más recientes (plan Basic o superior).
+
+Los prompts indican al modelo que cite los identificadores del BORME, que
+distinga una coincidencia de denominación de una identificación o una
+titularidad confirmadas, y que no tome la falta de resultados como prueba de
+que algo no existe.
+
+- `borme://act-types`: los tipos de acto, tal como los devuelve
+  `list_act_types`.
+- `borme://provinces`: las provincias y comunidades autónomas que aceptan los
+  filtros de provincia. Requiere `BORME_API_KEY`; sin clave, al leer el
+  recurso se muestran instrucciones para obtener una clave de API gratuita.
+- `borme://coverage`: hasta qué fecha están actualizados los datos, según
+  `registry_stats` en este servidor.
+
 ## Planes y límites
 
 - **Sin clave o con clave gratuita:** 50 peticiones al día, eventos de los
@@ -313,8 +349,9 @@ Planes y precios: [bormeapi.com/es#precios](https://bormeapi.com/es#precios).
   La skill necesita que el servidor MCP esté conectado.
 - [`vocab/`](vocab/): el vocabulario de tipos de acto, cada valor con su
   epígrafe en español y su etiqueta en inglés.
-- [`server.py`](server.py), [`tools.json`](tools.json) y el
-  [`Dockerfile`](Dockerfile): el servidor stdio local descrito más arriba;
+- [`server.py`](server.py), [`prompts.py`](prompts.py),
+  [`tools.json`](tools.json) y el [`Dockerfile`](Dockerfile): el servidor
+  stdio local descrito más arriba, con sus prompts y recursos;
   [`scripts/update_tools.py`](scripts/update_tools.py) regenera `tools.json`
   a partir del servidor alojado.
 

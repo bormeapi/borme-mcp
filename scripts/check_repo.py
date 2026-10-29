@@ -77,7 +77,9 @@ def main(argv):
             problems.append("live tools/list returned no tools")
         for readme in ("README.md", "README.es.md"):
             text = (ROOT / readme).read_text(encoding="utf-8")
-            listed = set(re.findall(r"^- `([a-z_]+)`", text, re.M))
+            # Only the tools section: the prompts section lists names too.
+            section = re.search(r"^## (?:Tools|Herramientas)\n(.*?)(?=^## )", text, re.M | re.S)
+            listed = set(re.findall(r"^- `([a-z_]+)`", section.group(1) if section else "", re.M))
             if listed != live:
                 problems.append(f"{readme}: tools listed {sorted(listed)} differ from live {sorted(live)}")
         print(f"live tools: {len(live)}")

@@ -137,6 +137,20 @@
 - es: "Sucursal"
   en: BRANCH
   style: noarg
+# A header of its own, printed after the officers of the same entry. Unknown
+# before 2026-10-26, it was glued into the last officer's name (160
+# person_roles rows, 42 companies on production, 2026-10-10). The opening of a
+# branch is no header: it is text inside "Sucursal" (BRANCH, "Sucursal.
+# SUCURSAL MOGAN. Apertura de sucursal. ..."), as far as the corpus shows.
+# The closure is a registrable act of its own (RRM arts. 295-308; art. 303 for
+# the sheet of a foreign company's first branch). Like BRANCH, no status or
+# risk signal is derived from the enum (state._STATUS_ACTS), also where the
+# company's own name ends in SUCURSAL EN ESPAÑA: the header alone does not
+# tell which registry sheet it affects or what status follows, so nothing may
+# key on it until that is read from the entries.
+- es: "Cierre de Sucursal"
+  en: BRANCH_CLOSURE
+  style: noarg
 - es: "Reactivación de la sociedad (Art. 242 del Reglamento del Registro Mercantil)"
   en: COMPANY_REACTIVATION
   style: noarg

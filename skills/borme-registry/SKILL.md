@@ -18,11 +18,16 @@ works without a key on the free plan. With a key, send it in the `X-API-Key`
 header:
 
 - Claude Code:
-  `claude mcp add --transport http borme https://mcp.bormeapi.com/mcp --header "X-API-Key: YOUR_KEY"`
+  `claude mcp add --transport http --scope user --header "X-API-Key: YOUR_KEY" borme https://mcp.bormeapi.com/mcp`
 - Clients configured with JSON (Cursor's `mcp.json` and similar):
   `{"mcpServers": {"borme": {"url": "https://mcp.bormeapi.com/mcp", "headers": {"X-API-Key": "YOUR_KEY"}}}}`
+- Assistants with custom connectors that sign in with OAuth (Claude.ai,
+  ChatGPT, Copilot): `https://mcp.bormeapi.com/mcp/oauth`. The user signs in
+  with their BORME API account and the plan of that account applies; there is
+  no key to paste.
 
-Keys: https://bormeapi.com/account. Plans and prices: https://bormeapi.com/pricing.
+Keys: https://bormeapi.com/account. Plans and prices: https://bormeapi.com/#pricing.
+Setup for each client: https://bormeapi.com/mcp.
 
 If the `borme` tools are not available in this session, say the BORME MCP
 server is not connected, give the user the lines above, and do not answer from
@@ -31,8 +36,8 @@ memory.
 ## What each plan includes
 
 - **No key (free):** `search_events`, `company_history` and `daily_digest`
-  over the last 7 days; `list_act_types` and `registry_stats`. 50 calls a day
-  per IP address.
+  over the last 7 days; `search_companies` (first 5 results);
+  `list_act_types` and `registry_stats`. 50 calls a day per IP address.
 - **basic:** the last 365 days, plus `company_by_nif`, `brand_owner` and
   `company_brands`.
 - **pro:** everything in basic, with the full history back to 2009.
@@ -53,9 +58,13 @@ and do not retry.
 
 - **"How much data is there / how fresh is it?"** → `registry_stats`. Call it
   before you trust a date filter for an unusual period.
-- **One company's story** → `company_history`. Pass a slug when you have one,
-  otherwise the name. If it returns a list of candidate slugs, show them and
-  let the user choose; do not pick one yourself.
+- **A company name** → `search_companies` first, then `company_history` with
+  the slug of the company the user means. A `fuzzy` match is a lead, not an
+  identification; say so.
+- **One company's story** → `company_history`. Pass a slug; if you only have
+  a name, use `search_companies` first. If `company_history` is given a name
+  and returns a list of candidate slugs, show them and let the user choose; do
+  not pick one yourself.
 - **Events across many companies** (by date, province, event type, or a
   substring of the company name) → `search_events`.
 - **"What happened in BORME on day X?"** → `daily_digest`.

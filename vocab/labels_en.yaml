@@ -1,8 +1,8 @@
 # English labels for the data pages on bormeapi.com (company, province and
 # municipality pages). Keyed by the enums of act_types.yaml and roles.yaml and
 # by the status values of company_state. The Spanish labels stay where they are
-# (act_types.yaml `label` or `es`; company_page.ROLE_LABELS, the hand-written
-# entries of _ROLE_FALLBACK, STATUS_LABELS); this file is the only place an
+# (act_types.yaml `label` or `es`; company_page.ROLE_LABELS, _ROLE_HAND_ES,
+# STATUS_LABELS); this file is the only place an
 # English human-readable label is written.
 #
 # Register: British/international company-law English. Where Spanish law has
@@ -19,7 +19,8 @@
 # (ASSOCIATION_BOARD_MEMBER, HONORARY_BOARD_MEMBER, PENSION_ENTITY_BOARD_MEMBER,
 # SUBSTITUTE_BOARD_MEMBER) have no hand-written label and still read
 # "board member".
-# tests/test_labels_en.py keeps this file complete and in step with the enums.
+# tests/test_labels_en.py keeps this file complete and in step with the enums,
+# and every role here has a hand-written Spanish label in company_page.py.
 
 act_types:
   INCORPORATION: "Incorporation"
@@ -101,6 +102,9 @@ act_types:
   # exchange for shares, and the transferor survives.
   SEGREGATION: "Hive-down of a business unit"
   BRANCH: "Branch"
+  # "Cierre de Sucursal": a branch is closed. The opening has no header of its
+  # own (it is text under "Sucursal").
+  BRANCH_CLOSURE: "Branch closure"
   # "Reactivación de la sociedad", printed with or without "(Art. 242 del
   # Reglamento del Registro Mercantil)"; the label carries no citation.
   COMPANY_REACTIVATION: "Reactivation of the company"
@@ -157,6 +161,9 @@ roles:
   BOARD_MEMBER: "Board member"
   # "Presidente".
   CHAIRPERSON: "Chairperson"
+  # "Copresidente", "COPRESI.A"/"COPRESI.B", "Copre.ConAdm": one of two or more
+  # holders sharing the chairmanship (2026-10-26).
+  CO_CHAIRPERSON: "Co-chair"
   # "Administrador mancomunado": the directors must act together.
   JOINT_DIRECTOR: "Joint director"
   SECRETARY: "Secretary"
@@ -167,10 +174,15 @@ roles:
   # acts.CONTEXT_ROLES: "Depositario" inside a quiebra entry (BANKRUPTCY_LEGACY).
   BANKRUPTCY_DEPOSITARY: "Bankruptcy depositary"
   # "Administrador concursal o síndico de la quiebra" (hand-written in
-  # company_page._ROLE_FALLBACK since 2026-10-10): one enum for the insolvency
+  # company_page._ROLE_HAND_ES since 2026-10-10): one enum for the insolvency
   # administrator of the Insolvency Act and for the síndico of a quiebra under
   # the old law. The humanised enum would name only the first of the two.
   INSOLVENCY_ADMINISTRATOR: "Insolvency administrator or bankruptcy trustee"
+  # "Liquidador concursal" ("LIQ.CONC.", "Liquid.conc."): liquidates the
+  # debtor's assets in the liquidation phase of insolvency proceedings. Written
+  # by hand since 2026-10-24, when Spanish got its label; the same words as the
+  # humanised enum.
+  INSOLVENCY_LIQUIDATOR: "Insolvency liquidator"
   # "Consejero delegado": the board member to whom the board has delegated its
   # powers, the managing director. "Managing board member", the humanised enum,
   # reads as one member of a management board.
@@ -193,14 +205,18 @@ roles:
   INDEPENDENT_BOARD_MEMBER: "Independent director"
   # "Apoderado de sucursal": a power of attorney, not a proxy for a meeting.
   BRANCH_PROXY_HOLDER: "Attorney-in-fact of a branch"
-  # "Entidad encargada del registro contable": keeps the register of shares
-  # held in book-entry form. Nothing to do with accounting.
-  ACCOUNTING_REGISTRY_ENTITY: "Keeper of the share register"
+  # "Entidad encargada del registro contable": keeps the register of securities
+  # represented by book entries (Ley 6/2023, art. 8). Nothing to do with
+  # accounting, and not the company's own register of shareholders (proofread
+  # of 2026-10-24; was "Keeper of the share register").
+  ACCOUNTING_REGISTRY_ENTITY: "Entity keeping the book-entry securities register"
   # "Socio": a member of whatever the entity is, in most entries a shareholder
   # of a limited company. "Partner" alone would say the entity is a partnership.
   PARTNER: "Member (shareholder or partner)"
   # "Socio fundador" / "Fundador".
-  FOUNDING_PARTNER: "Founding shareholder"
+  # Shareholder or partner, as PARTNER (proofread of 2026-10-24; was "Founding
+  # shareholder", narrower than "socio fundador").
+  FOUNDING_PARTNER: "Founding member (shareholder or partner)"
   # "Representante ante el SEPBLAC" (the anti-money-laundering authority).
   AML_REPRESENTATIVE: "AML representative (SEPBLAC)"
   # "Secretario no consejero" / "Vicesecretario no consejero". Spelled as the
@@ -210,7 +226,9 @@ roles:
   NON_EXECUTIVE_CHAIRPERSON: "Non-executive chairperson"
   NON_EXECUTIVE_DIRECTOR: "Non-executive director"
   # "Auxiliar delegado / representante de la administración concursal".
-  INSOLVENCY_ADMIN_ASSISTANT: "Assistant to the insolvency administrator"
+  # "Delegated": the auxiliar delegado exercises functions delegated to it, as
+  # the Spanish label says (proofread of 2026-10-24).
+  INSOLVENCY_ADMIN_ASSISTANT: "Delegated assistant to the insolvency administrator"
   INSOLVENCY_ADMIN_REPRESENTATIVE: "Representative of the insolvency administrator"
   # "Representante art. 143 RRM": the natural person who acts for a legal entity
   # that sits as a director.
@@ -226,7 +244,8 @@ statuses:
   extinct:
     badge: "Extinct"
     phrase: "extinct company"
-  # "Hoja cerrada" / "sociedad con hoja registral cerrada": set by the three
+  # "Hoja registral cerrada provisionalmente" / "sociedad con hoja registral
+  # cerrada provisionalmente" (until 2026-10-24 "Hoja cerrada"): set by the three
   # "Cierre provisional" acts (removal from the tax index of entities, revoked
   # NIF, conclusion of insolvency proceedings). The closure is provisional and
   # the company has not ended; "closed" alone reads as a closed company.

@@ -1,5 +1,7 @@
 # Conector MCP de BORME API
 
+[![MCP Badge](https://lobehub.com/badge/mcp/bormeapi-borme-mcp)](https://lobehub.com/mcp/bormeapi-borme-mcp)
+
 *English: [README.md](README.md)*
 
 Conecte Microsoft Copilot, Claude, ChatGPT, Cursor, VS Code o cualquier

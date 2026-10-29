@@ -1,0 +1,92 @@
+"""Repository guards for the public borme-mcp connector repo.
+
+Run from the repository root: python scripts/check_repo.py [tools.json]
+
+With a tools.json (the JSON-RPC answer of tools/list from the live server),
+it also checks that both READMEs name exactly the tools the server offers.
+Uses only the standard library.
+"""
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+SELF = "scripts/check_repo.py"
+
+# Private addresses, cluster-internal names and node ports say where the
+# service runs; tokens say more. None of it belongs in a public tree.
+INFRA = re.compile(
+    r"192\.168\.\d|10\.\d+\.\d+\.\d+|\.svc\.cluster\.local|NodePort|:30\d{3}"
+    r"|apify_api_|pdl_(live|sdbx)|re_[A-Za-z0-9]{16}|ghp_|AKIA"
+    r"|BEGIN [A-Z ]*PRIVATE KEY")
+DSN = re.compile(r"postgres(?:ql)?://([^\s:@/]+):([^\s@]+)@")
+# This repo connects to the hosted server; it holds no server code or schema.
+SQL = re.compile(r"\b(CREATE|ALTER|DROP)\s+(TABLE|INDEX|VIEW|SCHEMA)\b|\bSELECT\s+.+\s+FROM\s+\w", re.I)
+# Spelled with escapes so this file does not match itself.
+EM_DASH = "\u2014"
+PERSONAL = "george" + "-kozlitin"
+
+
+def tracked_text_files():
+    names = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True,
+                           text=True, check=True).stdout.split()
+    for rel in names:
+        path = ROOT / rel
+        if not path.is_file():
+            continue
+        try:
+            yield rel, path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+
+
+def line_of(text, pos):
+    return text[:pos].count("\n") + 1
+
+
+def main(argv):
+    problems = []
+    for rel, text in tracked_text_files():
+        if rel.endswith(".sql"):
+            problems.append(f"{rel}: SQL file in a connector repo")
+        if rel != SELF:
+            for m in INFRA.finditer(text):
+                problems.append(f"{rel}:{line_of(text, m.start())} discloses infrastructure: {m.group()[:24]}")
+            for m in SQL.finditer(text):
+                problems.append(f"{rel}:{line_of(text, m.start())} SQL in a connector repo: {m.group()[:40]}")
+        for m in DSN.finditer(text):
+            if m.group(2).lower() not in ("pass", "password", "***", "user"):
+                problems.append(f"{rel}:{line_of(text, m.start())} credentials in a DSN")
+        for i, line in enumerate(text.splitlines(), 1):
+            if EM_DASH in line:
+                problems.append(f"{rel}:{i} em dash; use a plain hyphen")
+            if PERSONAL in line and rel != "glama.json":
+                problems.append(f"{rel}:{i} personal account name outside glama.json")
+
+    json.loads((ROOT / "glama.json").read_text(encoding="utf-8"))
+
+    if len(argv) > 1:
+        answer = json.loads(Path(argv[1]).read_text(encoding="utf-8"))
+        live = {t["name"] for t in answer["result"]["tools"]}
+        if not live:
+            problems.append("live tools/list returned no tools")
+        for readme in ("README.md", "README.es.md"):
+            text = (ROOT / readme).read_text(encoding="utf-8")
+            listed = set(re.findall(r"^- `([a-z_]+)`", text, re.M))
+            if listed != live:
+                problems.append(f"{readme}: tools listed {sorted(listed)} differ from live {sorted(live)}")
+        print(f"live tools: {len(live)}")
+
+    for p in problems:
+        print(p)
+    if problems:
+        print(f"{len(problems)} problem(s)")
+        return 1
+    print("repository checks passed")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

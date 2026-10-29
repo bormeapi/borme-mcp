@@ -1,9 +1,9 @@
 name: ci
 
-# The server is published and indexed by MCP directories, so a broken commit
-# is visible to strangers before it is visible to us. Nothing here needs a
-# database: tool listing is meant to work without one, and that is the same
-# path Glama takes when it introspects the server.
+# This repo connects clients to the hosted server at mcp.bormeapi.com; it
+# holds no server code. CI checks what strangers see: the READMEs match the
+# live tool list, the public tree discloses nothing it should not, and the
+# stdio bridge image that MCP directories build still lists the tools.
 on:
   push:
     branches: [main]
@@ -11,31 +11,48 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - run: pip install -r requirements.txt pytest
-      - run: pytest tests/ -q
+      - name: live tools/list from the hosted server, anonymously
+        run: |
+          curl -sS --fail --retry 3 https://mcp.bormeapi.com/mcp \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json, text/event-stream" \
+            -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' \
+            -o "$RUNNER_TEMP/tools.json"
+      - name: repository guards and README tool list
+        run: python scripts/check_repo.py "$RUNNER_TEMP/tools.json"
 
   docker:
-    # The image is what Glama builds to inspect the server. It broke nothing
-    # so far because nobody rebuilt it; this makes every commit rebuild it.
+    # The image is what Glama builds to inspect the server. This makes every
+    # commit rebuild it and list the tools through it over stdio.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - run: docker build -t borme-mcp:ci .
-      - name: tools list from inside the image, with no database
+      - name: tools/list over stdio through the image
         run: |
-          docker run --rm --entrypoint python borme-mcp:ci -c "
-          import asyncio, server
-          names = [t.name for t in asyncio.run(server.mcp.list_tools())]
-          assert len(names) >= 7, names
-          print('tools:', names)
-          import json
-          rows = json.loads(server.list_act_types())
-          assert rows and all(r['english'] for r in rows), rows
-          print('act types:', len(rows))"
+          {
+            echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}'
+            sleep 5
+            echo '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+            echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
+            sleep 10
+          } | timeout 60 docker run -i --rm borme-mcp:ci > "$RUNNER_TEMP/stdio.out" || true
+          python - "$RUNNER_TEMP/stdio.out" <<'PY'
+          import json, sys
+          tools = None
+          for line in open(sys.argv[1], encoding="utf-8"):
+              line = line.strip()
+              if line.startswith("{"):
+                  msg = json.loads(line)
+                  if msg.get("id") == 2:
+                      tools = [t["name"] for t in msg["result"]["tools"]]
+          assert tools and len(tools) >= 10, tools
+          print("tools:", tools)
+          PY

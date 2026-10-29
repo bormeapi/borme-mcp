@@ -18,12 +18,17 @@ HTTP). Funciona sin clave con el plan gratuito. Con clave, envíela en la
 cabecera `X-API-Key`:
 
 - Claude Code:
-  `claude mcp add --transport http borme https://mcp.bormeapi.com/mcp --header "X-API-Key: SU_CLAVE"`
+  `claude mcp add --transport http --scope user --header "X-API-Key: SU_CLAVE" borme https://mcp.bormeapi.com/mcp`
 - Clientes que se configuran con JSON (el `mcp.json` de Cursor y similares):
   `{"mcpServers": {"borme": {"url": "https://mcp.bormeapi.com/mcp", "headers": {"X-API-Key": "SU_CLAVE"}}}}`
+- Asistentes con conectores personalizados que inician sesión mediante OAuth
+  (Claude.ai, ChatGPT, Copilot): `https://mcp.bormeapi.com/mcp/oauth`. El
+  usuario inicia sesión con su cuenta de BORME API y se aplica el plan de esa
+  cuenta; no hay que pegar ninguna clave.
 
 Claves: https://bormeapi.com/es/account. Planes y precios:
-https://bormeapi.com/es/precios.
+https://bormeapi.com/es#precios. Configuración de cada cliente:
+https://bormeapi.com/es/mcp.
 
 Si las herramientas de `borme` no están disponibles en esta sesión, diga que el
 servidor MCP de BORME no está conectado, facilite al usuario las líneas
@@ -32,8 +37,8 @@ anteriores y no responda de memoria.
 ## Qué incluye cada plan
 
 - **Sin clave (free):** `search_events`, `company_history` y `daily_digest`
-  sobre los últimos 7 días; `list_act_types` y `registry_stats`. 50 llamadas
-  al día por dirección IP.
+  sobre los últimos 7 días; `search_companies` (primeros 5 resultados);
+  `list_act_types` y `registry_stats`. 50 llamadas al día por dirección IP.
 - **basic:** los últimos 365 días, más `company_by_nif`, `brand_owner` y
   `company_brands`.
 - **pro:** todo lo de basic, con todo el histórico desde 2009.
@@ -54,9 +59,13 @@ indique qué plan lo cubre y no reintente.
 
 - **«¿Cuántos datos hay? ¿Están al día?»** → `registry_stats`. Llámela antes
   de fiarse de un filtro de fechas para un periodo poco habitual.
-- **La historia de una sociedad** → `company_history`. Pase el slug si lo
-  tiene y, si no, el nombre. Si devuelve una lista de slugs candidatos,
-  muéstrela y deje que el usuario elija; no escoja usted.
+- **Un nombre de sociedad** → primero `search_companies` y, después,
+  `company_history` con el slug de la sociedad a la que se refiere el usuario.
+  Una coincidencia `fuzzy` es una pista, no una identificación; dígalo.
+- **La historia de una sociedad** → `company_history`. Pase el slug; si solo
+  tiene el nombre, use antes `search_companies`. Si `company_history` recibe un
+  nombre y devuelve una lista de slugs candidatos, muéstrela y deje que el
+  usuario elija; no escoja usted.
 - **Eventos de muchas sociedades** (por fecha, provincia, tipo de acto o parte
   del nombre) → `search_events`.
 - **«¿Qué se publicó en el BORME el día X?»** → `daily_digest`.

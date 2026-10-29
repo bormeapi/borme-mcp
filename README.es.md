@@ -12,10 +12,11 @@ sociedades por nombre, búsqueda por NIF, marcas y nombres comerciales, y
 señales de riesgo.
 
 El servidor está alojado en `mcp.bormeapi.com`; no tiene que instalar ni
-ejecutar nada. Este repositorio reúne lo necesario a su alrededor: la
-configuración de cada cliente, una skill para agentes, el vocabulario de tipos
-de acto y una pequeña imagen Docker que conecta los clientes stdio con el
-servidor alojado.
+ejecutar nada, y es la forma recomendada de conectarse. Este repositorio reúne
+lo necesario a su alrededor: la configuración de cada cliente, una skill para
+agentes, el vocabulario de tipos de acto y un servidor stdio local que da
+acceso a los endpoints REST de BORME API, para los clientes que solo inician
+servidores por stdio.
 
 La guía completa y actualizada está en
 [bormeapi.com/es/mcp](https://bormeapi.com/es/mcp). Si este README y esa
@@ -196,21 +197,50 @@ curl -s https://mcp.bormeapi.com/mcp \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
 
-### Docker (puente stdio)
+### Servidor stdio local
 
-El [Dockerfile](Dockerfile) crea un puente stdio hacia
-`https://mcp.bormeapi.com/mcp` con mcp-remote. No contiene datos ni código
-del servidor; los directorios MCP lo construyen para listar las
-herramientas, y puede usarlo con cualquier cliente que inicie servidores por
-stdio. Usa su clave de API o, sin ella, el plan gratuito; no inicia sesión
-mediante OAuth.
+[`server.py`](server.py) es un servidor stdio local que da acceso a los
+endpoints REST de BORME API; le recomendamos el servidor alojado en
+mcp.bormeapi.com. Ofrece las mismas herramientas que el servidor alojado, con
+los mismos nombres, descripciones y parámetros, copiados en
+[`tools.json`](tools.json). Cada llamada a una herramienta realiza una o varias
+peticiones a `https://api.bormeapi.com/v1/...`. No contiene datos; los
+directorios MCP crean una imagen a partir de su [Dockerfile](Dockerfile) para
+listar las herramientas.
+
+- Para listar las herramientas no necesita clave ni conexión a la red.
+- Para llamar a una herramienta necesita una clave de API, salvo con
+  `list_act_types` y `registry_stats`: a diferencia del servidor MCP alojado,
+  la API REST no ofrece un plan gratuito sin clave. Su clave gratuita está en
+  su [cuenta](https://bormeapi.com/es/account). Indíquela en
+  `BORME_API_KEY`.
+- `daily_digest` y `registry_stats` devuelven menos campos que en el servidor
+  alojado, porque la API REST no tiene un único endpoint que
+  los proporcione: `daily_digest` devuelve el número de eventos del día, el
+  grado de estructuración de su texto y hasta 200 anuncios concursales, y
+  `registry_stats` devuelve la fecha de la última publicación y, con clave,
+  el grado de estructuración del texto en los últimos 30 días de
+  publicación.
+- No inicia sesión mediante OAuth.
+
+Con Docker:
 
 ```bash
 docker build -t borme-mcp .
 docker run -i --rm -e BORME_API_KEY=SU_CLAVE borme-mcp
 ```
 
-Si omite `-e BORME_API_KEY=...`, se aplica el plan gratuito.
+Con Python 3.12:
+
+```bash
+pip install -r requirements.txt
+BORME_API_KEY=SU_CLAVE python server.py
+```
+
+Cuando el servidor alojado cambie sus herramientas, ejecute
+`python scripts/update_tools.py` para regenerar `tools.json` y haga commit del
+archivo actualizado. La CI falla mientras `tools.json` y el servidor alojado no
+coincidan.
 
 ## Herramientas
 
@@ -283,8 +313,10 @@ Planes y precios: [bormeapi.com/es#precios](https://bormeapi.com/es#precios).
   La skill necesita que el servidor MCP esté conectado.
 - [`vocab/`](vocab/): el vocabulario de tipos de acto, cada valor con su
   epígrafe en español y su etiqueta en inglés.
-- [`Dockerfile`](Dockerfile) y [`entrypoint.sh`](entrypoint.sh): el puente
-  stdio descrito más arriba.
+- [`server.py`](server.py), [`tools.json`](tools.json) y el
+  [`Dockerfile`](Dockerfile): el servidor stdio local descrito más arriba;
+  [`scripts/update_tools.py`](scripts/update_tools.py) regenera `tools.json`
+  a partir del servidor alojado.
 
 ## Enlaces relacionados
 

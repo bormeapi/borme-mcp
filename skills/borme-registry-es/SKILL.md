@@ -3,7 +3,7 @@ name: borme-registry-es
 description: Responde preguntas sobre sociedades y empresas españolas a partir del Boletín Oficial del Registro Mercantil (BORME) mediante el servidor MCP de BORME en mcp.bormeapi.com. Úsela cuando el usuario quiera consultar o comprobar una empresa española o pregunte por su historia, constitución, nombramientos y ceses (administrador, apoderado, consejero), concurso de acreedores (quiebra), disolución, liquidación o extinción, cambios de domicilio social o de denominación, ampliaciones o reducciones de capital, fusiones, si sigue activa, un NIF o CIF, quién es titular de una marca o un nombre comercial, o qué se publicó en el BORME un día concreto o en una provincia. También en inglés (Spanish company registry, director appointments, insolvency, tax ID, trademark owner).
 ---
 
-# BORME — el Boletín Oficial del Registro Mercantil
+# BORME - el Boletín Oficial del Registro Mercantil
 
 El servidor MCP `borme` contiene los anuncios de sociedades de la sección A del
 BORME desde 2009, convertidos en eventos tipados, y ofrece además consultas por
@@ -43,8 +43,8 @@ Si la respuesta trae `plan_window`, se aplicó la ventana del plan
 (`company_history` lo incluye en todas las respuestas de los planes free y
 basic). Dígaselo al usuario una vez, en una frase, e indíquele qué cubre el
 resto: una clave para los últimos 365 días (basic) y pro para todo el
-histórico. No repita la llamada con fechas anteriores —el servidor las recorta
-igual— ni tome un resultado vacío como prueba de que antes no pasó nada.
+histórico. No repita la llamada con fechas anteriores -el servidor las recorta
+igual- ni tome un resultado vacío como prueba de que antes no pasó nada.
 
 Un rechazo que nombra un plan, o que indica que los anuncios de la sociedad
 quedan fuera de la ventana, no es un fallo del servidor: transmita su mensaje,

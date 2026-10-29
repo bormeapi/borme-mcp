@@ -3,7 +3,7 @@ name: borme-registry
 description: Answer questions about Spanish companies from the official commercial registry gazette (BORME, Boletín Oficial del Registro Mercantil) through the BORME MCP server at mcp.bormeapi.com. Use when the user wants to look up or check a Spanish company (empresa, sociedad) or asks about its history, incorporation (constitución), director or officer appointments and terminations (nombramientos, ceses, administrador, apoderado, consejero), insolvency (concurso de acreedores), dissolution, liquidation or extinction, registered-office or name changes (domicilio social, denominación), capital changes, mergers, whether it is still active, a NIF/CIF tax ID, who owns a brand or trading name (marca, nombre comercial), or what was published in BORME on a given day or in a given province.
 ---
 
-# BORME — the gazette of Spain's commercial registry
+# BORME - the gazette of Spain's commercial registry
 
 The `borme` MCP server holds the company notices of BORME Section A since
 2009, parsed into typed events, plus tax-ID and trademark lookups. This
@@ -41,8 +41,8 @@ memory.
 When an answer carries `plan_window`, the plan's window was applied
 (`company_history` carries it on every free or basic answer). Tell the user
 once, in one sentence, and say what covers the rest: a key for the last 365
-days (basic), pro for the full history. Do not retry with older dates — the
-server cuts them the same way — and do not take an empty result as proof that
+days (basic), pro for the full history. Do not retry with older dates - the
+server cuts them the same way - and do not take an empty result as proof that
 nothing happened earlier.
 
 A refusal that names a plan, or says a company's notices lie outside the

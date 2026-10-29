@@ -68,7 +68,7 @@ inglés. Instale solo una de las dos: cubren las mismas preguntas.
 En Claude Code, copie la carpeta en su directorio de skills:
 
 ```bash
-git clone https://github.com/george-kozlitin/borme-mcp.git
+git clone https://github.com/bormeapi/borme-mcp.git
 mkdir -p ~/.claude/skills && cp -r borme-mcp/skills/borme-registry-es ~/.claude/skills/
 ```
 
@@ -107,11 +107,11 @@ Qué supone construir el conjunto de datos por su cuenta:
 ## Relacionado
 
 - API REST con webhooks y listas de vigilancia: [bormeapi.com/es](https://bormeapi.com/es)
-- Actor de Apify (feed de pago por evento): [Spain Company Registry — BORME Events](https://apify.com/zon4a/spain-company-registry-borme-events)
+- Actor de Apify (feed de pago por evento): [Spain Company Registry - BORME Events](https://apify.com/zon4a/spain-company-registry-borme-events)
 
 ## Licencia
 
-MIT (código del servidor). Actos registrales — fuente de los datos: Agencia
+MIT (código del servidor). Actos registrales - fuente de los datos: Agencia
 Estatal Boletín Oficial del Estado ([boe.es](https://www.boe.es)). Marcas y
 nombres comerciales: Oficina Española de Patentes y Marcas (OEPM).
 Correspondencias de NIF y parte de las señales de riesgo: otros datos abiertos

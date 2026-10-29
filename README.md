@@ -5,7 +5,7 @@
 MCP server for **BORME** (Boletín Oficial del Registro Mercantil), the official
 gazette of Spain's commercial registry: 9.5M+ typed company events since 2009,
 updated every business day. Incorporations, director appointments, insolvencies,
-capital changes — 52 event types, each an English enum.
+capital changes - 52 event types, each an English enum.
 
 ## Hosted endpoint (no setup)
 
@@ -67,7 +67,7 @@ same questions.
 For Claude Code, copy the folder into your skills directory:
 
 ```bash
-git clone https://github.com/george-kozlitin/borme-mcp.git
+git clone https://github.com/bormeapi/borme-mcp.git
 mkdir -p ~/.claude/skills && cp -r borme-mcp/skills/borme-registry ~/.claude/skills/
 ```
 
@@ -104,11 +104,11 @@ What building the dataset yourself involves:
 ## Related
 
 - REST API with webhooks & watchlists: [bormeapi.com](https://bormeapi.com)
-- Apify actor (pay-per-event feed): [Spain Company Registry — BORME Events](https://apify.com/zon4a/spain-company-registry-borme-events)
+- Apify actor (pay-per-event feed): [Spain Company Registry - BORME Events](https://apify.com/zon4a/spain-company-registry-borme-events)
 
 ## License
 
-MIT (server code). Registry events — source of the data: Agencia Estatal Boletín
+MIT (server code). Registry events - source of the data: Agencia Estatal Boletín
 Oficial del Estado ([boe.es](https://www.boe.es)). Trademarks and trading names:
 Oficina Española de Patentes y Marcas (OEPM). Tax-ID mappings and some
 risk-signal inputs: other Spanish public-sector open data. Public sector

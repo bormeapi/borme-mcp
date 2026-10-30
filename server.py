@@ -1,6 +1,7 @@
 """Local stdio MCP server that wraps the BORME API REST endpoints.
 
-The tools, with their names, descriptions and input schemas, come from
+The tools, with their names, titles, descriptions, input schemas and
+annotations, come from
 tools.json, a copy of the hosted server's tools/list (regenerate it with
 scripts/update_tools.py). Each tool call becomes one or more requests to the
 public REST API at https://api.bormeapi.com/v1, with BORME_API_KEY, when set,
@@ -28,7 +29,7 @@ from mcp.server.models import InitializationOptions
 
 import prompts
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 HERE = Path(__file__).resolve().parent
 SPEC = json.loads((HERE / "tools.json").read_text(encoding="utf-8"))
 TOOLS = {t["name"]: t for t in SPEC["tools"]}
@@ -237,9 +238,9 @@ HANDLERS = {
 # Prompt arguments the text can do without; every other argument is required.
 OPTIONAL_ARGS = {"board_changes": {"since"}, "new_companies_digest": {"date"}}
 
-# The resources this server serves. The hosted server also has a
-# borme://company/{slug} template; here company_history does that job.
-# Descriptions differ from the hosted ones where the REST API differs.
+# The resources this server serves, besides the borme://company/{slug}
+# template below. Descriptions differ from the hosted ones where the REST API
+# differs.
 LOCAL_RESOURCES = {
     "act-types": prompts.RESOURCES["act-types"]["description"],
     "provinces": (
@@ -280,13 +281,33 @@ async def read_coverage(api):
 READERS = {"act-types": read_act_types, "provinces": read_provinces,
            "coverage": read_coverage}
 
+# The resource template: one company's latest events, as company_history
+# returns them with limit 20 and order desc.
+COMPANY = prompts.RESOURCES["company"]
+COMPANY_PREFIX = COMPANY["uri"].split("{", 1)[0]
+COMPANY_DESCRIPTION = (
+    "Up to 20 of the most recent published events of one company, by slug "
+    "(e.g. vaz-metales-sl, as returned by search_companies), with "
+    "total_events, first_seen and last_seen: the same answer as "
+    "company_history with company set to the slug, limit 20 and order desc. "
+    "Needs BORME_API_KEY (a free key works); without one, reading it returns "
+    "how to get a key. For more, call company_history.")
+
+
+async def read_company(api, slug):
+    return await api.get(f"/v1/companies/{seg(slug)}/events",
+                         {"limit": 20, "offset": 0, "order": "desc"})
+
 
 # --- MCP wiring -----------------------------------------------------------
 
 @server.list_tools()
 async def list_tools():
-    return [types.Tool(name=t["name"], description=t["description"],
-                       inputSchema=t["inputSchema"]) for t in SPEC["tools"]]
+    return [types.Tool(name=t["name"], title=t.get("title"),
+                       description=t["description"], inputSchema=t["inputSchema"],
+                       annotations=(types.ToolAnnotations(**t["annotations"])
+                                    if t.get("annotations") else None))
+            for t in SPEC["tools"]]
 
 
 @server.call_tool()
@@ -349,14 +370,23 @@ async def list_resources():
     ]
 
 
+@server.list_resource_templates()
+async def list_resource_templates():
+    return [types.ResourceTemplate(
+        uriTemplate=COMPANY["uri"], name="company", title=COMPANY["title"],
+        description=COMPANY_DESCRIPTION, mimeType="application/json")]
+
+
 @server.read_resource()
 async def read_resource(uri):
-    key = RESOURCE_BY_URI.get(str(uri).rstrip("/"))
-    if key is None:
+    uri = str(uri).rstrip("/")
+    key = RESOURCE_BY_URI.get(uri)
+    slug = uri[len(COMPANY_PREFIX):] if uri.startswith(COMPANY_PREFIX) else None
+    if key is None and not (slug and prompts.SLUG.match(slug)):
         raise ValueError(f"unknown resource: {uri}")
     api = Api()
     try:
-        result = await READERS[key](api)
+        result = await (READERS[key](api) if key else read_company(api, slug))
     except ApiError as err:
         detail = err.body.get("detail") if isinstance(err.body, dict) else err.body
         result = {"error": f"BORME API answered HTTP {err.status}", "detail": detail}

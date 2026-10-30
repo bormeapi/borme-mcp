@@ -3,10 +3,10 @@ name: ci
 # This repo holds a local stdio MCP server that wraps the BORME API REST
 # endpoints, plus the connection guides for the hosted server at
 # mcp.bormeapi.com. CI checks that the server lists exactly the tools in
-# tools.json and the 4 prompts and 3 resources the hosted server also offers
-# (with no key and no network, in the image too), that tools.json
-# still matches the hosted server, and that the public tree discloses nothing
-# it should not.
+# tools.json and the 4 prompts, 3 resources and 1 resource template the
+# hosted server also offers (with no key and no network, in the image too),
+# that tools.json still matches the hosted server, and that the public tree
+# discloses nothing it should not.
 #
 # If the "tools.json matches the hosted server" step fails, the hosted tools
 # changed: run `python scripts/update_tools.py`, commit tools.json and, for a

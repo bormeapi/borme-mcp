@@ -202,11 +202,12 @@ curl -s https://mcp.bormeapi.com/mcp \
 [`server.py`](server.py) es un servidor stdio local que da acceso a los
 endpoints REST de BORME API; le recomendamos el servidor alojado en
 mcp.bormeapi.com. Ofrece las mismas herramientas que el servidor alojado, con
-los mismos nombres, descripciones y parámetros, copiados en
-[`tools.json`](tools.json). Cada llamada a una herramienta realiza una o varias
-peticiones a `https://api.bormeapi.com/v1/...`. No contiene datos; los
-directorios MCP crean una imagen a partir de su [Dockerfile](Dockerfile) para
-listar las herramientas.
+los mismos nombres, títulos, descripciones, parámetros y anotaciones (todas
+las herramientas son de solo lectura), copiados en [`tools.json`](tools.json).
+Cada llamada a una herramienta realiza una o varias peticiones a
+`https://api.bormeapi.com/v1/...`. No contiene datos; los directorios MCP
+crean una imagen a partir de su [Dockerfile](Dockerfile) para listar las
+herramientas.
 
 - Para listar las herramientas no necesita clave ni conexión a la red.
 - Para llamar a una herramienta necesita una clave de API, salvo con
@@ -269,7 +270,8 @@ devuelve `tools/list`, explican sus parámetros. Están en inglés.
 
 ## Prompts y recursos
 
-Además de las herramientas, el servidor stdio local ofrece **prompts**,
+Además de las herramientas, el servidor alojado y el servidor stdio local
+ofrecen **prompts**,
 instrucciones predefinidas que su cliente puede ofrecerle (en Claude, desde el
 menú **+**; en otros clientes, en la sección que muestre los prompts del
 servidor), y **recursos**, datos de referencia que su cliente puede adjuntar
@@ -302,6 +304,16 @@ que algo no existe.
   recurso se muestran instrucciones para obtener una clave de API gratuita.
 - `borme://coverage`: hasta qué fecha están actualizados los datos, según
   `registry_stats` en este servidor.
+
+Una plantilla de recurso recibe el slug de una sociedad:
+
+- `borme://company/{slug}`: hasta 20 de los actos publicados más
+  recientes de una sociedad, por su slug (por ejemplo
+  `borme://company/vaz-metales-sl`), tal
+  como los devuelve `company_history` con `limit` 20 y `order` `desc`, con
+  las mismas reglas de su plan. En el servidor alojado sin clave de API, solo
+  se pueden consultar los actos de los últimos 7 días; el servidor local
+  requiere `BORME_API_KEY`. Para ver más actos, llame a `company_history`.
 
 ## Planes y límites
 
@@ -351,7 +363,8 @@ Planes y precios: [bormeapi.com/es#precios](https://bormeapi.com/es#precios).
   epígrafe en español y su etiqueta en inglés.
 - [`server.py`](server.py), [`prompts.py`](prompts.py),
   [`tools.json`](tools.json) y el [`Dockerfile`](Dockerfile): el servidor
-  stdio local descrito más arriba, con sus prompts y recursos;
+  stdio local descrito más arriba, con sus prompts, recursos y plantilla de
+  recurso;
   [`scripts/update_tools.py`](scripts/update_tools.py) regenera `tools.json`
   a partir del servidor alojado.
 

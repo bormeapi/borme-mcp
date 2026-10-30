@@ -6,10 +6,11 @@ Run from the repository root:
     python scripts/update_tools.py --check  # exit 1 if tools.json is stale
 
 It asks https://mcp.bormeapi.com/mcp, anonymously, for tools/list,
-prompts/list and resources/list, and stores the tools (name, description,
-inputSchema) together with the prompts and resources. server.py registers
-exactly what tools.json holds, so rerun this script whenever the hosted
-server changes a tool, then commit tools.json. CI runs it with --check.
+prompts/list, resources/list and resources/templates/list, and stores the
+tools (name, title, description, inputSchema, annotations) together with the
+prompts, resources and resource templates. server.py registers exactly the
+tools tools.json holds, so rerun this script whenever the hosted server
+changes a tool, then commit tools.json. CI runs it with --check.
 Uses only the standard library.
 """
 import json
@@ -39,11 +40,16 @@ def rpc(method):
 
 
 def live():
-    tools = [
-        {"name": t["name"], "description": t.get("description", ""),
-         "inputSchema": t["inputSchema"]}
-        for t in rpc("tools/list")["tools"]
-    ]
+    tools = []
+    for t in rpc("tools/list")["tools"]:
+        tool = {"name": t["name"]}
+        if t.get("title"):
+            tool["title"] = t["title"]
+        tool["description"] = t.get("description", "")
+        tool["inputSchema"] = t["inputSchema"]
+        if t.get("annotations"):
+            tool["annotations"] = t["annotations"]
+        tools.append(tool)
     return {
         "source": URL,
         "tools": tools,
@@ -72,11 +78,15 @@ def main(argv):
     print(f"wrote tools.json: {len(data['tools'])} tools, "
           f"{len(data['prompts'])} prompts, {len(data['resources'])} resources, "
           f"{len(data['resourceTemplates'])} resource templates")
-    if data["prompts"] or data["resources"] or data["resourceTemplates"]:
-        # server.py serves tools only; a prompt or resource needs its own
-        # handler (its text or its REST source), which this script cannot write.
-        print("the live server now has prompts or resources: add their "
-              "handlers to server.py and its tests")
+    # server.py serves the prompts and resources of prompts.py; a new or
+    # renamed one needs its handler there, which this script cannot write.
+    sys.path.insert(0, str(ROOT))
+    import prompts
+    live_names = ({p["name"] for p in data["prompts"]},
+                  {r["name"] for r in data["resources"] + data["resourceTemplates"]})
+    if live_names != (set(prompts.PROMPTS), set(prompts.RESOURCES)):
+        print("the live prompts or resources differ from prompts.py: copy the "
+              "hosted module into prompts.py and update server.py and its tests")
         return 2
     return 0
 

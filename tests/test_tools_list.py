@@ -1,8 +1,9 @@
 """Starts server.py over stdio and checks what it lists.
 
-tools/list must match tools.json; prompts/list and resources/list must offer
-exactly the prompts and resources the hosted server offers under the same
-names, within the Microsoft Copilot naming rules.
+tools/list must match tools.json; prompts/list, resources/list and
+resources/templates/list must offer exactly the prompts, resources and
+resource templates the hosted server offers under the same names, within the
+Microsoft Copilot naming rules.
 
 Run from the repository root with the dependencies installed:
     python tests/test_tools_list.py [command ...]
@@ -20,6 +21,7 @@ PROMPTS = {"company_due_diligence": ["company"], "board_changes": ["company", "s
            "new_companies_digest": ["province", "date"], "check_nif": ["nif"]}
 REQUIRED = {"company", "province", "nif"}
 RESOURCES = {"borme://act-types", "borme://provinces", "borme://coverage"}
+TEMPLATES = {"borme://company/{slug}"}
 # Microsoft Copilot drops a server whose names fall outside this pattern.
 NAME = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 EXPECTED = json.loads((ROOT / "tools.json").read_text(encoding="utf-8"))["tools"]
@@ -56,6 +58,8 @@ def main(argv):
         prompts = read_reply(proc, 3)["result"]["prompts"]
         send(proc, {"jsonrpc": "2.0", "id": 4, "method": "resources/list"})
         resources = read_reply(proc, 4)["result"]["resources"]
+        send(proc, {"jsonrpc": "2.0", "id": 5, "method": "resources/templates/list"})
+        templates = read_reply(proc, 5)["result"]["resourceTemplates"]
     finally:
         proc.stdin.close()
         proc.terminate()
@@ -68,7 +72,10 @@ def main(argv):
     for name, tool in want.items():
         assert got[name]["description"] == tool["description"], f"{name}: description differs"
         assert got[name]["inputSchema"] == tool["inputSchema"], f"{name}: inputSchema differs"
-    print(f"tools/list: {len(tools)} tools, names, descriptions and schemas match tools.json")
+        assert got[name].get("title") == tool.get("title"), f"{name}: title differs"
+        assert got[name].get("annotations") == tool.get("annotations"), f"{name}: annotations differ"
+    print(f"tools/list: {len(tools)} tools, names, titles, descriptions, schemas and "
+          "annotations match tools.json")
 
     assert len(prompts) == 4, f"expected 4 prompts, got {len(prompts)}"
     got = {p["name"]: [a["name"] for a in p.get("arguments") or []] for p in prompts}
@@ -88,6 +95,12 @@ def main(argv):
     for r in resources:
         assert NAME.match(r["name"]) and r.get("description"), r["uri"]
     print(f"resources/list: {len(resources)} resources, URIs as expected")
+
+    uris = {t["uriTemplate"] for t in templates}
+    assert uris == TEMPLATES, f"resource templates differ: {sorted(uris)}"
+    for t in templates:
+        assert NAME.match(t["name"]) and t.get("description"), t["uriTemplate"]
+    print(f"resources/templates/list: {len(templates)} template, URI as expected")
     return 0
 
 

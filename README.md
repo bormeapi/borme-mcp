@@ -191,8 +191,9 @@ curl -s https://mcp.bormeapi.com/mcp \
 
 [`server.py`](server.py) is a local stdio server that wraps the BORME API REST
 endpoints; the hosted server at mcp.bormeapi.com is the recommended way. It
-offers the same tools, with the same names, descriptions and parameters, as
-the hosted server: they are copied into [`tools.json`](tools.json). Each tool
+offers the same tools, with the same names, titles, descriptions, parameters
+and annotations (all tools are read-only), as the hosted server: they are
+copied into [`tools.json`](tools.json). Each tool
 call makes one or more requests to `https://api.bormeapi.com/v1/...`. It
 holds no data; MCP directories build an image from its
 [Dockerfile](Dockerfile) to list the tools.
@@ -255,7 +256,8 @@ explain its parameters.
 
 ## Prompts and resources
 
-Besides tools, the local stdio server offers **prompts**, ready-made
+Besides tools, the hosted server and the local stdio server offer
+**prompts**, ready-made
 instructions that your client can offer you (in Claude, from the **+** menu;
 in other clients, wherever they list a server's prompts), and **resources**,
 reference data that your client can attach as context. A prompt only supplies
@@ -283,6 +285,16 @@ proof that something does not exist.
   the resource returns instructions for obtaining a free API key.
 - `borme://coverage`: data freshness, as `registry_stats` returns it on this
   server.
+
+One resource template takes a company slug:
+
+- `borme://company/{slug}`: up to 20 of the most recent published
+  events of one company, by slug (for example
+  `borme://company/vaz-metales-sl`), as
+  `company_history` returns them with `limit` 20 and `order` `desc`, under
+  the same plan rules. On the hosted server without an API key, only events
+  from the last 7 days are visible; the local server requires
+  `BORME_API_KEY`. For more events, call `company_history`.
 
 ## Plans and limits
 
@@ -330,7 +342,8 @@ Plans and prices: [bormeapi.com/#pricing](https://bormeapi.com/#pricing).
   heading and English label.
 - [`server.py`](server.py), [`prompts.py`](prompts.py),
   [`tools.json`](tools.json) and the [`Dockerfile`](Dockerfile) - the local
-  stdio server described above, with its prompts and resources;
+  stdio server described above, with its prompts, resources and resource
+  template;
   [`scripts/update_tools.py`](scripts/update_tools.py) regenerates
   `tools.json` from the hosted server.
 

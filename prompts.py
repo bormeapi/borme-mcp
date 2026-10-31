@@ -299,7 +299,8 @@ RESOURCES = {
         "title": "BORME data coverage and freshness",
         "description": (
             "How much BORME data this server holds and how fresh it is: "
-            "approximate event and company counts (estimates), the first and "
+            "exact event and company counts from the latest hourly snapshot "
+            "(planner estimates if no snapshot exists), the first and "
             "latest publication day held, and the share of gazette text "
             "structured (weighted by events) over the 30 days up to the latest "
             "processed day. The same report as the registry_stats tool. Open "

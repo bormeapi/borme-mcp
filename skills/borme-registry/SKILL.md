@@ -148,9 +148,11 @@ and do not retry.
   possible phoenix company" or "appeared on the AEAT debtor list of <year>",
   never that it "is" a phoenix company or "owes" tax; name the events behind
   the flag and their dates.
-- **Counts from `registry_stats` come from the latest hourly snapshot**
-  (planner estimates if no snapshot exists). Present them as counts at that
-  hour, not as a live tally.
+- **Counts from `registry_stats` come from the latest hourly snapshot, with
+  planner estimates as a fallback if no snapshot exists.** The response does
+  not identify which source was used or provide a snapshot timestamp. Explain
+  these limits when presenting the counts; do not describe them as live counts
+  or assign them a specific timestamp.
 - Give the BORME publication date and the `borme_id` of every event you cite,
   so the user can find the notice.
 

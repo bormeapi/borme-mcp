@@ -157,8 +157,12 @@ indique qué plan lo cubre y no reintente.
   listado de deudores de la AEAT de <año>», nunca que «es» una sociedad fénix
   o que «debe» impuestos; cite los actos en que se basa la alerta y sus
   fechas.
-- **Las cifras de `registry_stats` son estimaciones.** Preséntelas como
-  aproximadas.
+- **Las cifras de `registry_stats` proceden de la última instantánea horaria;
+  si no hay ninguna disponible, se utilizan estimaciones del planificador de
+  PostgreSQL.** La respuesta no indica cuál de estas fuentes se ha utilizado ni
+  incluye la fecha y hora de la instantánea. Explique estas limitaciones al
+  presentar las cifras; no las describa como recuentos en tiempo real ni les
+  atribuya una fecha y hora concretas.
 - Indique la fecha de publicación en el BORME y el `borme_id` de cada evento
   que cite, para que el usuario pueda localizar el anuncio.
 

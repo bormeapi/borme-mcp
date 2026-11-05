@@ -1,6 +1,7 @@
 # BORME API MCP connector
 
 [![MCP Badge](https://lobehub.com/badge/mcp/bormeapi-borme-mcp)](https://lobehub.com/mcp/bormeapi-borme-mcp)
+[![SealKeeper Service SEAL](https://api.sealkeeper.run/v1/agents/SGqDHdoesrZam8em3eFh3wRW3MRKsN1xHK1ho56RRlk/badge.svg)](https://sealkeeper.run/agents/bormeapi.com/mcp-bormeapi-com)
 
 *Español: [README.es.md](README.es.md)*
 

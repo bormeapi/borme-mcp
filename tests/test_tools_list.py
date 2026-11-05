@@ -18,7 +18,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PROMPTS = {"company_due_diligence": ["company"], "board_changes": ["company", "since"],
-           "new_companies_digest": ["province", "date"], "check_nif": ["nif"]}
+           "new_companies_digest": ["province", "date"], "check_nif": ["nif"],
+           "visit_briefing": ["company"]}
 REQUIRED = {"company", "province", "nif"}
 RESOURCES = {"borme://act-types", "borme://provinces", "borme://coverage"}
 TEMPLATES = {"borme://company/{slug}"}
@@ -65,7 +66,7 @@ def main(argv):
         proc.terminate()
         proc.wait(timeout=10)
 
-    assert len(tools) == 10, f"expected 10 tools, got {len(tools)}"
+    assert len(tools) == 13, f"expected 13 tools, got {len(tools)}"
     got = {t["name"]: t for t in tools}
     want = {t["name"]: t for t in EXPECTED}
     assert set(got) == set(want), f"names differ: {sorted(set(got) ^ set(want))}"
@@ -77,7 +78,7 @@ def main(argv):
     print(f"tools/list: {len(tools)} tools, names, titles, descriptions, schemas and "
           "annotations match tools.json")
 
-    assert len(prompts) == 4, f"expected 4 prompts, got {len(prompts)}"
+    assert len(prompts) == 5, f"expected 5 prompts, got {len(prompts)}"
     got = {p["name"]: [a["name"] for a in p.get("arguments") or []] for p in prompts}
     assert got == PROMPTS, f"prompts differ: {got}"
     for p in prompts:

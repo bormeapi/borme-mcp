@@ -265,6 +265,12 @@ coincidan.
 - `list_act_types`: los tipos de acto, con su etiqueta en inglés y el
   epígrafe original en español.
 - `registry_stats`: tamaño y cobertura de los datos del registro.
+- `company_snapshot`: la ficha de la sociedad con administradores y otros
+  cargos, socio único y capital (plan Basic o superior).
+- `company_signals`: las señales derivadas de una sociedad, con filtros por
+  fecha y tipo (plan Pro o superior).
+- `act_stats`: recuentos de actos por tipo, periodo y provincia, incluidas
+  fusiones, escisiones y ampliaciones de capital (plan Pro o superior).
 
 La descripción y el esquema de parámetros de cada herramienta, tal como los
 devuelve `tools/list`, explican sus parámetros. Están en inglés.
@@ -292,6 +298,9 @@ herramientas que genera se contabilizan en su plan de la forma habitual.
   publicación disponible.
 - `check_nif` (nif): a qué sociedad está vinculado un NIF/CIF en nuestros
   datos y sus actos publicados más recientes (plan Basic o superior).
+- `visit_briefing` (company): un informe para preparar su visita a un cliente,
+  con la ficha de la sociedad y su historial y señales de los últimos 24
+  meses.
 
 Los prompts indican al modelo que cite los identificadores del BORME, que
 distinga una coincidencia de denominación de una identificación o una

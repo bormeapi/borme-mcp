@@ -117,8 +117,14 @@ async def company_history(api, a):
     company = str(a["company"]).strip()
     page = {"limit": a.get("limit", 100), "offset": a.get("offset", 0),
             "order": a.get("order", "desc")}
+    return await company_request(api, company, "/events", page)
+
+
+async def company_request(api, company, suffix="", params=None):
+    """Use a slug first, then the same name fallback for company tools."""
+    company = str(company).strip()
     try:
-        return await api.get(f"/v1/companies/{seg(company)}/events", page)
+        return await api.get(f"/v1/companies/{seg(company)}{suffix}", params)
     except ApiError as err:
         if err.status != 404:
             raise
@@ -127,7 +133,7 @@ async def company_history(api, a):
     cards = found.get("companies") or []
     if len(cards) == 1:
         slug = cards[0]["company_slug"]
-        return await api.get(f"/v1/companies/{seg(slug)}/events", page)
+        return await api.get(f"/v1/companies/{seg(slug)}{suffix}", params)
     return {
         "company": company,
         "detail": ("no company with this slug; candidates by name follow, "
@@ -138,6 +144,29 @@ async def company_history(api, a):
             for c in cards
         ],
     }
+
+
+async def company_snapshot(api, a):
+    return await company_request(api, a["company"])
+
+
+async def company_signals(api, a):
+    return await company_request(api, a["company"], "/signals", {
+        "signal_type": ",".join(a.get("signal_types") or []) or None,
+        "date_from": a.get("date_from"), "date_to": a.get("date_to"),
+        "limit": a.get("limit", 50), "offset": a.get("offset", 0),
+    })
+
+
+async def act_stats(api, a):
+    return await api.get("/v1/stats/acts", {
+        "act_types": ",".join(a.get("act_types") or []) or None,
+        "provinces": ",".join(a.get("provinces") or []) or None,
+        "by_province": a.get("by_province", False),
+        "grain": a.get("grain", "month"),
+        "date_from": a.get("date_from"), "date_to": a.get("date_to"),
+        "limit": a.get("limit", 1000),
+    })
 
 
 async def company_by_nif(api, a):
@@ -222,6 +251,9 @@ async def registry_stats(api, a):
 HANDLERS = {
     "search_events": search_events,
     "company_history": company_history,
+    "company_snapshot": company_snapshot,
+    "company_signals": company_signals,
+    "act_stats": act_stats,
     "company_by_nif": company_by_nif,
     "brand_owner": brand_owner,
     "company_brands": company_brands,

@@ -31,7 +31,7 @@
               "type": "string"
             },
             "type": "array",
-            "description": "Optional list of act type enums; an event matches if it has any of them, e.g. [\"INCORPORATION\"] or [\"INSOLVENCY_DECLARATION\", \"INSOLVENCY_STATUS\"]. Full list: list_act_types. Barcelona prints some acts as free text under \"Otros conceptos\": recognised wording gets its own act type (act_type_raw stays \"Otros conceptos\"; fields.shareholder names a sole shareholder when the text does), and a same-entry revocation and reappointment becomes RE_ELECTIONS. Reprocessed events keep their event_id, but their acts can change."
+            "description": "Optional list of act type enums; an event matches if it has any of them, e.g. [\"INCORPORATION\"] or [\"INSOLVENCY_DECLARATION\", \"INSOLVENCY_STATUS\"]. Full list: list_act_types. Barcelona prints some acts as free text under \"Otros conceptos\": recognised wording is mapped to a normalised act type, while act_type_raw remains \"Otros conceptos\". The payload retains the source text, including any sole shareholder's name. When a revocation and a new appointment appear in the same entry, the API maps the combination to RE_ELECTIONS; this is an API classification and does not establish that the source describes a re-election. Reprocessed events keep their event_id, but their acts can change."
           },
           "company_name_contains": {
             "title": "Company Name Contains",
@@ -42,6 +42,7 @@
             "default": 50,
             "title": "Limit",
             "type": "integer",
+            "maximum": 200,
             "description": "Maximum events returned, integer 1-200, e.g. 20 (default 50)."
           }
         },
@@ -71,6 +72,7 @@
             "default": 100,
             "title": "Limit",
             "type": "integer",
+            "maximum": 200,
             "description": "Events per page, integer 1-200, e.g. 20 (default 100)."
           },
           "offset": {
@@ -101,9 +103,92 @@
       }
     },
     {
+      "name": "company_snapshot",
+      "title": "Company registry card",
+      "description": "Get one company's current registry card: the same answer as the REST API's\nGET /v1/companies/{slug}.\n\nUse it for \"who runs it, who owns it, what capital\": officers (the current\nroles derived from the published acts), sole_shareholder as printed,\ncapital_eur, address, status, NIF with its source, public_contracts and\na size_hint estimate. For the dated acts use company_history. A name is\nsearched as in company_history: several matches return {ambiguous: true,\ncandidates, candidate_names with name, province and status}, none returns\n{error, suggested_companies}.\n\nReturns JSON with company_slug, company_name, current_name, status,\nofficers, sole_shareholder, capital_eur, nif, nif_caveat, sources and the\nother snapshot fields, plus former_slugs for a merged company. BORME\npublishes no minority shareholdings, employees or revenue.\n\nRead-only; one request per call. Needs the basic plan or higher: send your\nAPI key in the X-API-Key header (https://bormeapi.com/account).",
+      "inputSchema": {
+        "properties": {
+          "company": {
+            "title": "Company",
+            "type": "string",
+            "description": "Company slug, e.g. vaz-metales-sl (from search_companies), or a name of at least 3 letters or digits, e.g. \"Mercadona\", searched case-insensitively as in company_history."
+          }
+        },
+        "required": [
+          "company"
+        ],
+        "type": "object",
+        "title": "company_snapshotArguments"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Company registry card"
+      }
+    },
+    {
+      "name": "company_signals",
+      "title": "A company's signals",
+      "description": "Get one company's derived signals within your plan's window, newest first:\nthe REST API's GET /v1/companies/{slug}/signals.\n\nUse it for one company's ownership changes, mass exits, insolvency\ndeclarations and the like; across all companies use recent_signals. A name\nis searched as in\ncompany_history: several matches return {ambiguous: true, candidates},\nnone returns {error, suggested_companies}.\n\nReturns JSON {company_slug, total, count, next_offset, signals:\n[{event_id, signal_type, date, company_slug, company_name, province,\ndetails}]}, with former_slugs for a merged company (every slug is read),\nand plan_window or hidden_by_plan when your plan's window applied: relay\ntheir notes. AEAT_DEBTOR: say the company was on the list published on\nthat date, never that the debt is outstanding. count 0 is not proof of\ngood health.\n\nRead-only; one request per call. Needs the pro plan or higher; key in the X-API-Key header\n(https://bormeapi.com/account).",
+      "inputSchema": {
+        "properties": {
+          "company": {
+            "title": "Company",
+            "type": "string",
+            "description": "Company slug, e.g. vaz-metales-sl (from search_companies), or a name of at least 3 letters or digits, e.g. \"Mercadona\", searched case-insensitively as in company_history."
+          },
+          "signal_types": {
+            "title": "Signal Types",
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Optional list; each one of INSOLVENCY_FILED, ACCORDION, MASS_EXIT, OWNERSHIP_CHANGE, DISTRESS_COMBO, PHOENIX, ADDRESS_CLUSTER, AEAT_DEBTOR, PUBLIC_CONTRACT_AWARD, e.g. [\"OWNERSHIP_CHANGE\", \"MASS_EXIT\"]; omit for all types your plan covers."
+          },
+          "date_from": {
+            "title": "Date From",
+            "type": "string",
+            "description": "Earliest signal date, inclusive, YYYY-MM-DD, e.g. 2024-11-01. Optional; moved up to the start of your plan's window when earlier (plan_window says so)."
+          },
+          "date_to": {
+            "title": "Date To",
+            "type": "string",
+            "description": "Latest signal date, inclusive, YYYY-MM-DD, e.g. 2026-10-31. Optional."
+          },
+          "limit": {
+            "default": 50,
+            "title": "Limit",
+            "type": "integer",
+            "maximum": 200,
+            "description": "Signals per page, integer 1-200, e.g. 20 (default 50)."
+          },
+          "offset": {
+            "default": 0,
+            "title": "Offset",
+            "type": "integer",
+            "description": "Signals to skip, integer 0-10000 (default 0); pass the previous page's next_offset, e.g. 50."
+          }
+        },
+        "required": [
+          "company"
+        ],
+        "type": "object",
+        "title": "company_signalsArguments"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "A company's signals"
+      }
+    },
+    {
       "name": "company_by_nif",
       "title": "Find a company by NIF",
-      "description": "Look up a Spanish company by its NIF/CIF tax ID. Use it when the user gives\na tax ID (with a name use search_companies); on a hit, call\ncompany_history with the company_slug.\n\nReturns JSON {found, company_slug, company_name, current_name, status,\nprovince, nif_source, nif_caveat, ...}; use current_name. BORME has no\ndedicated tax-ID field: there are more than 580,000 NIF mappings from\npublic sources and the text of BORME notices, covering a minority of\ncompanies, so a miss (reason nif_unmapped) means \"not matched yet\", not\n\"does not exist\". invalid_input true: not a NIF/CIF. reason\nnif_check_character_failed: wrong check character; relay tell_the_user\nand the did_you_mean candidates. reason not_registry_entity: explain\nentity_type as the note does. ambiguous true: ask which candidate.\nnif_caveat present: say the link is not settled.\n\nRead-only; one request per call. Needs the basic plan or higher: send your\nAPI key in the X-API-Key header (https://bormeapi.com/account).",
+      "description": "Look up a Spanish company by its NIF/CIF tax ID. Use it when the user gives\na tax ID (with a name use search_companies); on a hit, call\ncompany_history with company_slug.\n\nReturns JSON {found, company_slug, current_name, status, nif_source,\nnif_caveat, ...}; use current_name. BORME has no dedicated tax-ID field: more\nthan 580,000 NIF mappings from public sources and the text of BORME notices\ncover a minority of companies, so a miss (reason nif_unmapped) means\n\"not matched yet\", not \"does not exist\". reason nif_revoked: AEAT records a\nrevocation; relay tell_the_user. On a company match, relay nif_status.note if\npresent. invalid_input true: not a NIF/CIF.\nreason nif_check_character_failed: relay tell_the_user and did_you_mean.\nreason not_registry_entity: explain entity_type. ambiguous\ntrue: ask which candidate. nif_caveat present: say the link is not settled.\n\nRead-only. Needs the basic plan or higher: send your\nAPI key in the X-API-Key header (https://bormeapi.com/account).",
       "inputSchema": {
         "properties": {
           "nif": {
@@ -141,6 +226,7 @@
             "default": 20,
             "title": "Limit",
             "type": "integer",
+            "maximum": 200,
             "description": "Maximum matches, integer 1-200, e.g. 10 (default 20)."
           }
         },
@@ -161,7 +247,7 @@
     {
       "name": "company_brands",
       "title": "A company's brands",
-      "description": "List the trademarks and trading names that the Spanish patent office (OEPM)\nrecords under a holder with this company's name.\n\nUse it for a known company (a slug from search_companies or\ncompany_history); to go from a brand to its company use brand_owner.\n\nReturns JSON {company_slug, commercial_names, trademarks (each {name, file,\nstatus, since}), counts, truncated, limit_per_kind, source, note}. The\noffice publishes no tax IDs, so every link is a name match, not\nconfirmed ownership. An empty result means none is linked in our data,\nnot that the company holds none. limit applies to each kind separately,\nnewest first; counts is what this answer lists, not the company's total,\nand truncated true for a kind means more are linked: raise limit.\n\nRead-only; one request per call. Needs the basic plan or higher: send your\nAPI key in the X-API-Key header (https://bormeapi.com/account).",
+      "description": "List the trademarks and trading names that the Spanish patent office (OEPM)\nrecords under a holder with this company's name.\n\nUse it for a known company (a slug from search_companies or\ncompany_history); to go from a brand to its company use brand_owner.\n\nReturns JSON {company_slug, commercial_names, trademarks (each {name, file,\nstatus, since}), counts, truncated, limit_per_kind, source, note}. The\noffice publishes no tax IDs, so every link is a name match, not\nconfirmed ownership. An empty result means none is linked in our data,\nnot that the company holds none; {error, suggested_companies} means no\ncompany was found with that slug, so nothing was looked up. limit applies to each kind separately,\nnewest first; counts is what this answer lists, not the company's total,\nand truncated true for a kind means more are linked: raise limit.\n\nRead-only; one request per call. Needs the basic plan or higher: send your\nAPI key in the X-API-Key header (https://bormeapi.com/account).",
       "inputSchema": {
         "properties": {
           "company": {
@@ -173,6 +259,7 @@
             "default": 50,
             "title": "Limit",
             "type": "integer",
+            "maximum": 200,
             "description": "Maximum results per kind (trademarks, trading names), integer 1-200, e.g. 10 (default 50)."
           }
         },
@@ -237,6 +324,74 @@
       }
     },
     {
+      "name": "act_stats",
+      "title": "Act counts by type, period and province",
+      "description": "Count BORME acts by act type, period (month, quarter or year) and\nprovince: how many companies and entries had mergers, spin-offs, capital\nincreases or any other act type, newest period first.\n\nUse it for trends (\"mergers per quarter in Spain since 2020\"). To read\nthe acts themselves use search_events.\n\nReturns JSON {grain, count, truncated, rows: [{period, act_type, province,\ncompanies, events}], data_through, built_from, built_to, note,\nplan_window}, plus hidden_by_plan when the plan left buckets out, and\nnot_built (no rows, never zeros) when the range reaches years outside\nbuilt_from..built_to. period is the bucket's first day by BORME\npublication date. companies counts distinct companies in that bucket:\nnever add rows up. Province \"*\" is all of Spain; a community gives one row\nper province, not a total.\n\nRead-only; one request per call. Needs the pro plan or higher: send your\nkey in the X-API-Key header (https://bormeapi.com/account).",
+      "inputSchema": {
+        "properties": {
+          "act_types": {
+            "title": "Act Types",
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Optional list of act type enums to count, e.g. [\"MERGER_BY_ABSORPTION\", \"TOTAL_SPIN_OFF\"]; omit for every act type. Full list: list_act_types."
+          },
+          "provinces": {
+            "title": "Provinces",
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Optional list of BORME province names, accent- and case-insensitive, e.g. [\"MADRID\", \"BARCELONA\"]; an autonomous community gives one row per province, e.g. [\"Cataluña\"]. Omit for the all-provinces rows (province \"*\")."
+          },
+          "by_province": {
+            "default": false,
+            "title": "By Province",
+            "type": "boolean",
+            "description": "Without provinces: true gives one row per province instead of the all-provinces rows, e.g. true (default false)."
+          },
+          "grain": {
+            "default": "month",
+            "enum": [
+              "month",
+              "quarter",
+              "year"
+            ],
+            "title": "Grain",
+            "type": "string",
+            "description": "The length of each period, one of \"month\" (default), \"quarter\", \"year\", e.g. \"quarter\"."
+          },
+          "date_from": {
+            "title": "Date From",
+            "type": "string",
+            "description": "Optional YYYY-MM-DD, e.g. 2024-01-01; the period holding this day is the first one. Data starts on 2009-01-02."
+          },
+          "date_to": {
+            "title": "Date To",
+            "type": "string",
+            "description": "Optional YYYY-MM-DD, e.g. 2025-12-31; periods starting on or before this day."
+          },
+          "limit": {
+            "default": 1000,
+            "title": "Limit",
+            "type": "integer",
+            "maximum": 5000,
+            "description": "Maximum rows, integer 1-5000, e.g. 200 (default 1000); truncated is true when more matched."
+          }
+        },
+        "type": "object",
+        "title": "act_statsArguments"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Act counts by type, period and province"
+      }
+    },
+    {
       "name": "search_companies",
       "title": "Search companies by name",
       "description": "Find Spanish companies by name and return ranked company cards. Use it first\nwhen the user gives a company name, then company_history with its\ncompany_slug; with a tax ID use company_by_nif, with a brand use\nbrand_owner.\n\nMatches current names, former names and variants, ignoring accents, case,\npunctuation and the legal form. Returns JSON {query, count, total,\ntotal_is_at_least, truncated, limit, offset, companies: [{company_slug,\nname, legal_form, province, municipality, status, in_insolvency,\nlast_act_date, match, matched_on}]}. match is exact, prefix, contains or\nfuzzy (a lead, not an identification; say so). Ranked by match, then\nactive companies, then newest act.\n\nRead-only; one request per call; not limited by the free plan's 7 days of\nhistory. The free plan shows at most the first 5 ranked cards;\nhidden_by_plan counts the rest: relay its note. The NIF is on the card\nfrom the basic plan up (X-API-Key header). An empty answer is not proof\nthat a business does not exist.",
@@ -261,6 +416,7 @@
             "default": 10,
             "title": "Limit",
             "type": "integer",
+            "maximum": 50,
             "description": "Cards per page, integer 1-50, e.g. 5 (default 10)."
           },
           "offset": {
@@ -377,6 +533,18 @@
       "description": "Check a Spanish NIF/CIF tax ID against the BORME API's company-to-NIF links: the company linked to it in this data, any format or check-character problem the tool reports, and the linked company's latest published acts. Uses company_by_nif (Basic plan or higher), then company_history.",
       "name": "check_nif",
       "title": "Check a NIF"
+    },
+    {
+      "arguments": [
+        {
+          "description": "Company name or slug, e.g. \"Mercadona\" or vaz-metales-sl.",
+          "name": "company",
+          "required": true
+        }
+      ],
+      "description": "Briefing on one Spanish company before a client visit, from the notices published in BORME over the last 24 months: its officers on record, any declared sole shareholder, capital moves, mergers, demergers and other corporate restructuring acts, and risk signals, each claim cited with its BORME publication date. Uses company_snapshot (Basic plan or higher), company_history and company_signals (Pro plan or higher).",
+      "name": "visit_briefing",
+      "title": "Visit briefing"
     }
   ],
   "resources": [

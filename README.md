@@ -1,6 +1,7 @@
 # BORME API MCP connector
 
 [![MCP Badge](https://lobehub.com/badge/mcp/bormeapi-borme-mcp)](https://lobehub.com/mcp/bormeapi-borme-mcp)
+[![SealKeeper Service SEAL](https://api.sealkeeper.run/v1/agents/SGqDHdoesrZam8em3eFh3wRW3MRKsN1xHK1ho56RRlk/badge.svg)](https://sealkeeper.run/agents/bormeapi.com/mcp-bormeapi-com)
 
 *Español: [README.es.md](README.es.md)*
 
@@ -250,6 +251,12 @@ CI fails while `tools.json` and the hosted server differ.
 - `list_act_types` - the act types, with their English labels and the
   original Spanish headings.
 - `registry_stats` - size and coverage of the registry data.
+- `company_snapshot` - a company profile with officers, sole shareholder and
+  capital (Basic plan and above).
+- `company_signals` - one company's derived signals, with date and type
+  filters (Pro plan and above).
+- `act_stats` - act counts by type, period and province, including mergers,
+  spin-offs and capital increases (Pro plan and above).
 
 Each tool's description and parameter schema, as returned by `tools/list`,
 explain its parameters.
@@ -274,6 +281,8 @@ the instructions: the tool calls it leads to count against your plan as usual.
   community. If date is omitted, it uses the latest publication day.
 - `check_nif` (nif): which company a NIF/CIF is linked to in our data, and
   its latest published acts (Basic plan and above).
+- `visit_briefing` (company): a briefing for a client visit, with a company
+  profile and its history and signals from the last 24 months.
 
 The prompts tell the model to cite BORME ids, to tell a name match from a
 confirmed identification or ownership, and not to treat a missing result as

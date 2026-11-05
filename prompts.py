@@ -16,6 +16,7 @@ library only.
 """
 from __future__ import annotations
 
+import datetime as dt
 import re
 
 # Microsoft 365 Copilot reads at most 1,024 characters of a description; the
@@ -23,7 +24,7 @@ import re
 MAX_DESCRIPTION = 1000
 
 # The rules every prompt ends with, from the tool descriptions and the
-# proofread of 2026-10-29.
+# Codex proofread of 2026-10-29 (docs/en-es-mcp-prompts-resources-review.md).
 COMMON_RULES = """\
 Rules for the answer:
 - For every fact taken from a returned BORME event, cite its borme_id and \
@@ -107,6 +108,19 @@ PROMPTS = {
         "arguments": {
             "nif": "NIF/CIF, a letter and 8 characters, e.g. B12345674; spaces, "
                    "hyphens, dots and the ES prefix are accepted.",
+        },
+    },
+    "visit_briefing": {
+        "title": "Visit briefing",
+        "description": (
+            "Briefing on one Spanish company before a client visit, from the "
+            "notices published in BORME over the last 24 months: its officers on "
+            "record, any declared sole shareholder, capital moves, mergers, demergers "
+            "and other corporate restructuring acts, and risk signals, each claim cited with its BORME "
+            "publication date. Uses company_snapshot (Basic plan or higher), "
+            "company_history and company_signals (Pro plan or higher)."),
+        "arguments": {
+            "company": "Company name or slug, e.g. \"Mercadona\" or vaz-metales-sl.",
         },
     },
 }
@@ -255,7 +269,14 @@ verify against their document, not as confirmed corrections.
 note and caveat; no company is linked to this identifier in this data.
 - ambiguous true: list the candidates and ask which company is meant.
 - a hit: name the company, its slug and status; repeat nif_caveat if present \
-(the link is then not settled) and relay the source notices.
+(the link is then not settled) and relay the source notices. If nif_status is \
+a non-null object, relay its dates and any note present. The AEAT record alone \
+does not establish whether the company is trading.
+- reason nif_revoked: relay tell_the_user. Explain that AEAT records a \
+revocation for this NIF and give the dates in nif_status. If rehabilitated_on \
+is set, also report the rehabilitation and do not describe the NIF as currently \
+revoked solely on the basis of the earlier revocation. No company in our \
+dataset is linked to this NIF.
 - found false otherwise: the NIF is not matched to a company yet. That is not \
 proof that the company does not exist; NIF links cover a minority of \
 companies.
@@ -266,11 +287,85 @@ the latest acts with their dates and borme_id.
 {COMMON_RULES}"""
 
 
+# How far back visit_briefing reads (Santander use case 2, 03.11.2026).
+BRIEFING_MONTHS = 24
+
+
+def _months_back(today: dt.date, months: int) -> dt.date:
+    """The same day `months` earlier; the 29th, 30th or 31st falls back to the
+    last day of a shorter month."""
+    y, m = divmod(today.year * 12 + today.month - 1 - months, 12)
+    m += 1
+    for day in (today.day, 30, 29, 28):
+        try:
+            return dt.date(y, m, day)
+        except ValueError:
+            continue
+    raise AssertionError("unreachable")
+
+
+def visit_briefing(company: str, today: dt.date | None = None) -> str:
+    company = _quoted(company)
+    since = _months_back(today or dt.date.today(), BRIEFING_MONTHS).isoformat()
+    if _SLUG_LIKE.match(company):
+        target = (f'"{company}" looks like a company slug: call company_snapshot with '
+                  f'company "{company}".')
+    else:
+        target = f'call company_snapshot with company "{company}".'
+    return f"""\
+Prepare a briefing on the Spanish company "{company}" for a client visit, from \
+the notices published in BORME since {since} (the last {BRIEFING_MONTHS} months), \
+using the BORME API tools.
+
+1. The company card: {target} If the answer is ambiguous, list the \
+candidates (name, province, status, slug) and ask which one is meant; if it \
+is an error with suggested_companies, list those and ask. Do not pick one \
+silently. {STOP_IF_UNRESOLVED} company_snapshot needs the Basic plan or \
+higher: on a plan refusal, say so, relay how to get access, call \
+search_companies with the name to resolve the slug, and go on with step 2.
+2. History: call company_history with company set to the resolved slug and \
+order "desc"; {PAGING}, and stop once the events are older than {since}. If \
+plan_window is present, relay its note and say which part of the period was \
+not read.
+3. Signals: call company_signals with company set to the resolved slug and \
+date_from "{since}". It needs the Pro plan or higher: on a plan refusal, say \
+that the signals could not be checked and why, relay how to get access, and \
+continue without them.
+4. Write the briefing in these sections, each claim citing the BORME \
+publication date and the borme_id of the act it comes from (for card fields, \
+the card's as_of date and the tool; for a signal, its date, signal_type and \
+event_id, and the borme_id of the history event with the same event_id when \
+step 2 read it; never invent a borme_id for a signal):
+- Who runs it: the officers on the card, and the APPOINTMENTS, RE_ELECTIONS, \
+TERMINATIONS, REVOCATIONS and APPOINTMENT_CANCELLATIONS in the period. The \
+card's officers are derived from published acts, not a verified current list.
+- Ownership: sole_shareholder on the card and the SOLE_SHAREHOLDER_DECLARATION, \
+SOLE_SHAREHOLDER_CHANGE and SOLE_SHAREHOLDER_STATUS_LOST acts. BORME publishes \
+sole shareholders only: say that minority and other shareholdings are not \
+published, and do not describe a group or a parent the acts do not name.
+- Capital: CAPITAL_INCREASE, CAPITAL_REDUCTION and CALLED_UP_CAPITAL_PAID \
+acts, with the amounts the payload prints, and capital_eur on the card.
+- M&A and reorganisation: MERGER_BY_ABSORPTION, MERGER_BY_UNION, \
+PARTIAL_SPIN_OFF, TOTAL_SPIN_OFF, SEGREGATION, \
+GLOBAL_TRANSFER_ASSETS_LIABILITIES and TRANSFORMATION acts, plus NAME_CHANGE, \
+ADDRESS_CHANGE and PURPOSE_CHANGE; quote the counterparty only as the act \
+text prints it.
+- Risks: the signals read in step 3, and INSOLVENCY_DECLARATION, \
+INSOLVENCY_STATUS, DISSOLUTION, EXTINCTION and PROVISIONAL_SHEET_CLOSURE_TAX \
+acts; repeat nif_caveat if the card carries one. No signal is not proof of \
+good health.
+5. End with what could not be checked: plan refusals, the plan's window, \
+pages not read.
+
+{COMMON_RULES}"""
+
+
 RENDER = {
     "company_due_diligence": company_due_diligence,
     "board_changes": board_changes,
     "new_companies_digest": new_companies_digest,
     "check_nif": check_nif,
+    "visit_briefing": visit_briefing,
 }
 
 # Resources: what a client can attach as context without calling a tool.
